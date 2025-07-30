@@ -11,6 +11,11 @@
     <style lang="en" type="text/css" id="dark-mode-custom-style"></style>
     <style lang="en" type="text/css" id="dark-mode-native-style"></style>
     <style lang="en" type="text/css" id="dark-mode-native-sheet"></style>
+    <link type="text/css" rel="stylesheet" id="dark-mode-custom-link">
+    <link type="text/css" rel="stylesheet" id="dark-mode-general-link">
+    <style lang="en" type="text/css" id="dark-mode-custom-style"></style>
+    <style lang="en" type="text/css" id="dark-mode-native-style"></style>
+    <style lang="en" type="text/css" id="dark-mode-native-sheet"></style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -122,19 +127,19 @@
     </style>
 </head>
 
-<body data-new-gr-c-s-check-loaded="14.1245.0" data-gr-ext-installed="" cz-shortcut-listen="true">
+<body data-new-gr-c-s-check-loaded="14.1246.0" data-gr-ext-installed="" cz-shortcut-listen="true">
     <main>
         <div class="container py-5">
             <div class="text-center mb-5">
                 <div class="qr-icon mb-3">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="3" width="8" height="8" rx="1" fill="#0d6efd"/>
-            <rect x="3" y="13" width="8" height="8" rx="1" fill="#0d6efd"/>
-            <rect x="13" y="3" width="8" height="8" rx="1" fill="#0d6efd"/>
-            <rect x="13" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"/>
-            <rect x="18" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"/>
-            <rect x="13" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"/>
-            <rect x="18" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"/>
+            <rect x="3" y="3" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+            <rect x="3" y="13" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+            <rect x="13" y="3" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+            <rect x="13" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+            <rect x="18" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+            <rect x="13" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+            <rect x="18" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
         </svg>
                 </div>
                 <h2 class="fw-bold mb-2" style="color: #0055A5; font-size: 2rem;">QR Generator</h2>
@@ -355,17 +360,17 @@
         // Download CSV template
         document.getElementById("btnDownloadTemplate").addEventListener("click", function() {
             const csvContent = "tipe,nip,kodeCabang,namaPegawai,namaCabang,region\n" +
-                "cab,prcusia,88888,Ecsa,Plaza Danantara,000\n" +
-                "agn,ecsaap,88888,Ecsa,menara mandiri,001\n" +
-                "bdy,untar,88888,Ecsa,Mandiri Digital Tower,002\n" +
-                "prh,telkom,88888,Ecsa,Slipicon Valley,003\n" +
-                "kom,adv160,88888,Ecsa,Wisma Mandiri,004\n" +
-                "pdg,batagoracil,88888,Ecsa,KCP Sudiriman,005\n" +
-                "mrc,cinplex,88888,Ecsa,KCP Sudiriman,006\n" +
-                "eve,jogmar,88888,Ecsa,KCP Sudiriman,007\n" +
-                "kol,maudyayunda,88888,Ecsa,KCP Sudiriman,008\n" +
-                "wst,ancol,88888,Ecsa,KCP Sudiriman,009\n" +
-                "oth,67890,55555,prcuisa,KCP Gatot Subroto,010";
+                "cab,prcusia,88888,Ecsa,Plaza Danantara,\"000\"\n" +
+                "agn,ecsaap,88888,Ecsa,menara mandiri,\"001\"\n" +
+                "bdy,untar,88888,Ecsa,Mandiri Digital Tower,\"002\"\n" +
+                "prh,telkom,88888,Ecsa,Slipicon Valley,\"003\"\n" +
+                "kom,adv160,88888,Ecsa,Wisma Mandiri,\"004\"\n" +
+                "pdg,batagoracil,88888,Ecsa,KCP Sudiriman,\"005\"\n" +
+                "mrc,cinplex,88888,Ecsa,KCP Sudiriman,\"006\"\n" +
+                "eve,jogmar,88888,Ecsa,KCP Sudiriman,\"007\"\n" +
+                "kol,maudyayunda,88888,Ecsa,KCP Sudiriman,\"008\"\n" +
+                "wst,ancol,88888,Ecsa,KCP Sudiriman,\"009\"\n" +
+                "oth,67890,55555,prcuisa,KCP Gatot Subroto,\"010\"";
 
             const blob = new Blob([csvContent], {
                 type: 'text/csv;charset=utf-8;'
@@ -378,10 +383,16 @@
 
         // Send data to Google Sheet
         function sendDataToSheet(data) {
+            // Format region to 3 digits with leading zeros
+            const formattedRegion = data.region.padStart(3, "0");
+
             fetch("https://script.google.com/macros/s/AKfycbzdNSL8EIp5y9diBESC1wy4Htl-4M1qsO3u1c-R8codHHk3-ZnypGYPTPfSyL9VEaWZ/exec", {
                 method: "POST",
                 mode: "no-cors",
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    ...data,
+                    region: formattedRegion
+                }),
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -401,22 +412,26 @@
             if (!/^\d{5}$/.test(kodeCabang)) return alert("Kode Cabang harus 5 digit Angka");
             if (!/^[a-zA-Z0-9]+$/.test(nip)) return alert("NIP harus alfanumerik (huruf dan angka saja)");
             if (nip.length === 0) return alert("NIP tidak boleh kosong");
+            if (!/^\d{1,3}$/.test(region)) return alert("Region harus berupa angka (1-3 digit)");
+
+            // Format region to 3 digits with leading zeros
+            const formattedRegion = region.padStart(3, "0");
 
             sendDataToSheet({
                 tipe: nipPrefix,
-                nip: `${nipPrefix}${region}${nip}`, // Combined field
+                nip: `${nipPrefix}${formattedRegion}${nip}`, // Combined field
                 kodeCabang,
                 namaPegawai,
                 namaCabang,
-                region
+                region: formattedRegion
             });
 
-            generateQR(nip, kodeCabang, namaPegawai, namaCabang, nipPrefix, region);
+            generateQR(nip, kodeCabang, namaPegawai, namaCabang, nipPrefix, formattedRegion);
         });
 
         // Generate single QR code
         function generateQR(nip, kodeCabang, namaPegawai, namaCabang, nipPrefix, region) {
-            const urlQR = `https://bmri.id/reflivin?deep_link_sub1=${kodeCabang}&deep_link_sub2=${nipPrefix}${region}${nip}`;
+            const urlQR = `https://bmri.id/reflivin?af_adset=${nipPrefix}${region}${nip}${kodeCabang}&deep_link_sub1=${kodeCabang}&deep_link_sub2=${nipPrefix}${region}${nip}`;
             document.getElementById("namaCabangOutput").textContent = namaCabang.toUpperCase();
             document.getElementById("namaPegawaiOutput").textContent = `${namaPegawai.toUpperCase()}`;
 
@@ -701,7 +716,8 @@
                             action: "bulk",
                             data: batch.map(item => ({
                                 ...item,
-                                nip: `${item.tipe}${item.region}${item.nip}` // Combine fields
+                                nip: `${item.tipe}${item.region.padStart(3, "0")}${item.nip}`, // Combine fields with formatted region
+                                region: item.region.padStart(3, "0") // Format region to 3 digits
                             }))
                         }),
                         headers: {
@@ -722,7 +738,7 @@
         // Generate QR image on demand
         async function generateQRImage(qr) {
             return new Promise((resolve) => {
-                const urlQR = `https://bmri.id/reflivin?deep_link_sub1=${qr.kodeCabang}&deep_link_sub2=${qr.tipe}${qr.region}${qr.nip}`;
+                const urlQR = `https://bmri.id/reflivin?af_adset=${qr.tipe}${qr.region.padStart(3, "0")}${qr.nip}${qr.kodeCabang}&deep_link_sub1=${qr.kodeCabang}&deep_link_sub2=${qr.tipe}${qr.region.padStart(3, "0")}${qr.nip}`;
                 const qrDiv = document.createElement("div");
 
                 new QRCode(qrDiv, {
@@ -838,7 +854,7 @@
                     document.body.removeChild(card);
 
                     // Add to ZIP
-                    const fileName = `QR_${qr.tipe}${qr.region}${qr.nip}_${qr.kodeCabang}.png`;
+                    const fileName = `QR_${qr.tipe}${qr.region.padStart(3, "0")}${qr.nip}_${qr.kodeCabang}.png`;
                     imgFolder.file(fileName, canvas.toDataURL("image/png").split(',')[1], {
                         base64: true
                     });
@@ -893,7 +909,7 @@
                     const qrDataURL = await generateQRImage(qr);
 
                     // Add to ZIP
-                    const fileName = `QR_${qr.tipe}${qr.region}${qr.nip}_${qr.kodeCabang}.png`;
+                    const fileName = `QR_${qr.tipe}${qr.region.padStart(3, "0")}${qr.nip}_${qr.kodeCabang}.png`;
                     imgFolder.file(fileName, qrDataURL.split(',')[1], {
                         base64: true
                     });
@@ -927,6 +943,12 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     </script>
+
+
+    <script async="" data-explicit-opt-in="true" data-cookie-opt-in="true" data-deployment-id="dpl_HeHY1AiZqwe4gXsUKUBJCYfCjHx8" src="https://vercel.live/_next-live/feedback/feedback.js"></script>
+    <deepl-input-controller translate="no"></deepl-input-controller>
+    <vercel-live-feedback style="position: absolute; top: 0px; left: 0px; z-index: 2147483647;"></vercel-live-feedback>
 </body>
+<grammarly-desktop-integration data-grammarly-shadow-root="true"></grammarly-desktop-integration>
 
 </html>
