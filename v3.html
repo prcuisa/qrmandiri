@@ -1,0 +1,662 @@
+<html lang="id"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QR Livin' Generator - Mandiri</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        main {
+            flex: 1;
+        }
+        
+        .card-print {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            margin: auto;
+            border-radius: 20px;
+            background: linear-gradient(to bottom right, #e0f2ff, #fff);
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+            background: url('https://raw.githubusercontent.com/ekstrah/motif-mandiri/main/mandiri-wave.svg') no-repeat bottom right/300px;
+        }
+        
+        .livin-tag {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007dfe;
+        }
+        
+        .qr-box {
+            border: 4px solid #007dfe;
+            padding: 15px;
+            border-radius: 20px;
+            background: white;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .btn-download {
+            display: block;
+            margin: 10px auto;
+        }
+        
+        footer {
+            background: transparent;
+            padding: 1rem 0;
+            text-align: center;
+            font-size: .9rem;
+            color: #6c757d;
+        }
+        
+        .qr-icon {
+            display: inline-block;
+            padding: 12px;
+            background-color: rgba(0, 85, 165, 0.1);
+            border-radius: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #007dfe;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .share-buttons button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .link-container {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .link-text {
+            word-break: break-all;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #fff;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #0055A5;
+            color: white;
+        }
+        
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+        
+        .whatsapp-share {
+            background-color: #25D366 !important;
+            color: white !important;
+        }
+        
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 1.8rem !important;
+            }
+            .qr-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <div class="qr-icon mb-3">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+                        <rect x="3" y="13" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+                        <rect x="13" y="3" width="8" height="8" rx="1" fill="#0d6efd"></rect>
+                        <rect x="13" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+                        <rect x="18" y="13" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+                        <rect x="13" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+                        <rect x="18" y="18" width="3" height="3" rx="0.5" fill="#00A0E3"></rect>
+                    </svg>
+                </div>
+                <h2 class="fw-bold mb-2" style="color: #0055A5; font-size: 2rem;">QR Generator</h2>
+                <p class="text-muted" style="font-size: 1.1rem;"><span style="color: #0055A5; font-weight: 500;">Livin
+                        by' Bank Mandiri</span></p>
+                <p class="mt-3" style="color: #6c757d; font-size: 1rem;">Pilih Mode → Isi data → Generate QR → Download/Share</p>
+            </div>
+
+            <!-- Mode Switch -->
+            <div class="mode-switch mb-4">
+                <button id="modeDirect" class="mode-btn active">Mode Direct</button>
+                <button id="modeShortlink" class="mode-btn">Mode Shortlink</button>
+            </div>
+
+            <!-- Form Mode Direct -->
+            <div id="formDirect" class="card shadow-sm rounded-4 p-4 mb-5 mx-auto" style="max-width:800px;">
+                <form id="qr-form-direct" class="row g-4">
+                    <div class="col-md-6">
+                        <label for="nip" class="form-label fw-semibold">Kode MGM</label>
+                        <input id="nip" class="form-control form-control-lg" type="text" required="" placeholder="Masukkan Kode MGM">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="namaPegawai" class="form-label fw-semibold">Nama Pegawai</label>
+                        <input id="namaPegawai" class="form-control form-control-lg" type="text" required="" placeholder="Masukkan Nama Pegawai">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="kodeCabang" class="form-label fw-semibold">Kode Cabang</label>
+                        <input id="kodeCabang" class="form-control form-control-lg" type="text" placeholder="Masukkan Kode Cabang (opsional)">
+                    </div>
+
+                    <div class="col-12 text-center">
+                        <button class="btn btn-primary btn-lg mt-3 px-5" type="submit">🔍 Generate QR</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Mode Shortlink -->
+            <div id="formShortlink" class="card shadow-sm rounded-4 p-4 mb-5 mx-auto" style="max-width:800px; display:none;">
+                <form id="qr-form-shortlink" class="row g-4">
+                    <div class="col-md-6">
+                        <label for="shortlink" class="form-label fw-semibold">Shortlink (https://bmri.id/)</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon3">https://bmri.id/</span>
+                            <input id="shortlink" class="form-control form-control-lg" type="text" required="" placeholder="Masukkan shortlink" aria-describedby="basic-addon3">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="nipShortlink" class="form-label fw-semibold">Kode MGM</label>
+                        <input id="nipShortlink" class="form-control form-control-lg" type="text" required="" placeholder="Masukkan Kode MGM">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="namaPegawaiShortlink" class="form-label fw-semibold">Nama Pegawai</label>
+                        <input id="namaPegawaiShortlink" class="form-control form-control-lg" type="text" required="" placeholder="Masukkan Nama Pegawai">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="kodeCabangShortlink" class="form-label fw-semibold">Kode Cabang</label>
+                        <input id="kodeCabangShortlink" class="form-control form-control-lg" type="text" placeholder="Masukkan Kode Cabang (opsional)">
+                    </div>
+
+                    <div class="col-12 text-center">
+                        <button class="btn btn-primary btn-lg mt-3 px-5" type="submit">🔍 Generate QR</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- QR Result Area -->
+            <div id="capture-area" class="card-print text-center" style="display:none;">
+                <div class="livin-tag">Livin' by Mandiri</div>
+                <p class="text-muted mb-1">Scan QR code ini untuk download aplikasi Livin'</p>
+                <div id="qr-area" class="qr-box"></div>
+                <div id="qr-spinner" class="mt-3" style="display:none;">
+                    <div class="spinner"></div>
+                    <p class="text-muted mt-2 mb-0">Membuat QR...</p>
+                </div>
+
+                <div class="link-container">
+                    <p class="link-text" id="generated-link"></p>
+                </div>
+
+                <div class="share-buttons">
+                    <button id="btnCopyLink" class="btn btn-outline-primary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z">
+                            </path>
+                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z">
+                            </path>
+                        </svg>
+                        Copy Link
+                    </button>
+
+                    <button id="btnShareWhatsApp" class="btn whatsapp-share btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 极速赛车开奖直播 0 0 1 6.6-10.421 6.574 6.574 0 0 1 4.66 11.235c-.697 2.427-2.829 4.14-5.12 4.14z"/>
+                            <path d="M11.521 9.447a1.84 1.84 0 0 1-1.297.93c-.143.033-.286.062-.43.084-.145.022-.29.04-.436.053-.145.013-.29.02-.436.02-.291 0-.58-.03-.865-.09a2.857 2.857 0 0 1-1.975-1.372 4.933 4.933 0 0 1-.62-2.406c0-.26.02-.52.06-.78.04-.26.1-.51.18-.76.08-.25.18-.48.3-.7.12-.22.26-.42.42-.61.16-.19.34-.36.54-.51.2-.15.41-.28.64-.39.23-.11.47-.2.72-.27.25-.07.51-.11.78-.13.26-.02.53-.02.79.01.26.02.52.07.77.14.25.07.48.16.71.27.23.11.44.24.64.39.2.15.37.32.53.51.16.19.3.39.42.61.12.22.22.45.3.7.08.25.14.5.18.76.04.26.06.52.06.78a4.94 4.94 0 0 1-.08.87 3.11 3.11 0 0 1-.22.83c-.09.26-.21.51-.35.75-.14.24-.31.46-.5.66-.19.2-.41.37-.65.52-.24.15-.5.27-.78.37-.28.1-.57.17-.87.21-.3.04-.61.05-.92.03-.31-.02-.61-.07-.91-.14-.3-.07-.58-.17-.85-.3z"/>
+                        </svg>
+                        Share WhatsApp
+                    </button>
+                </div>
+
+                <div class="mt-3">
+                    <small class="text-muted">QR ini akan mengarahkan ke Play Store / App Store</small>
+                </div>
+                <hr class="my-4">
+                <p class="text-muted small mb-0">Bank Mandiri terdaftar dan diawasi oleh OJK <br>© 2025 PT Bank Mandiri (Persero) Tbk.</p>
+            </div>
+
+            <div class="text-center mt-3">
+                <button id="btnDownload" onclick="downloadPNG()" class="btn btn-success btn-download" style="display:none;">⬇ Download PNG (Ultra HD)</button>
+                <button id="btnDownloadQROnly" onclick="downloadQROnly()" class="btn btn-outline-secondary btn-download" style="display:none;">⬇ Download QR Only (Tanpa Frame)</button>
+            </div>
+        </div>
+        <footer>
+            <hr> © 2025 · Built by <strong style="color:#7c3aed;"><a href="https://prcuisa.com" target="_blank" style="color:#7c3aed; text-decoration:none;">Prcuisa Labs</a></strong> — <span style="color:#3b82f6;">Ecsa Ahcri Pracasa</span>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const logoBase64 = ""; // isi dengan base64 logo jika ada
+        let generatedUrl = "";
+        let qrImageDataUrl = ""; // Menyimpan data URL gambar QR
+        let currentMode = "direct"; // Mode aktif: "direct" atau "shortlink"
+        let currentNamaPegawai = ""; // Menyimpan nama pegawai
+
+        // Mode switching
+        document.getElementById("modeDirect").addEventListener("click", function() {
+            switchMode("direct");
+        });
+
+        document.getElementById("modeShortlink").addEventListener("click", function() {
+            switchMode("shortlink");
+        });
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Update UI untuk mode switch
+            document.getElementById("modeDirect").classList.toggle("active", mode === "direct");
+            document.getElementById("modeShortlink").classList.toggle("active", mode === "shortlink");
+            
+            // Tampilkan form yang sesuai
+            document.getElementById("formDirect").style.display = mode === "direct" ? "block" : "none";
+            document.getElementById("formShortlink").style.display = mode === "shortlink" ? "block" : "none";
+            
+            // Reset hasil QR jika ada
+            document.getElementById("capture-area").style.display = "none";
+            document.getElementById("btnDownload").style.display = "none";
+            document.getElementById("btnDownloadQROnly").style.display = "none";
+        }
+
+        // Form submission untuk mode direct
+        document.getElementById("qr-form-direct").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const nip = document.getElementById("nip").value.trim();
+            const namaPegawai = document.getElementById("namaPegawai").value.trim();
+            const kodeCabang = document.getElementById("kodeCabang").value.trim();
+
+            if (nip.length === 0) return alert("Kode MGM tidak boleh kosong");
+            if (namaPegawai.length === 0) return alert("Nama Pegawai tidak boleh kosong");
+            
+            // Kode cabang sekarang opsional, jika kosong akan diubah menjadi "null"
+            generateQRDirect(nip, namaPegawai, kodeCabang);
+        });
+
+        // Form submission untuk mode shortlink
+        document.getElementById("qr-form-shortlink").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const shortlink = document.getElementById("shortlink").value.trim();
+            const nip = document.getElementById("nipShortlink").value.trim();
+            const namaPegawai = document.getElementById("namaPegawaiShortlink").value.trim();
+            const kodeCabang = document.getElementById("kodeCabangShortlink").value.trim();
+
+            if (shortlink.length === 0) return alert("Shortlink tidak boleh kosong");
+            if (nip.length === 0) return alert("Kode MGM tidak boleh kosong");
+            if (namaPegawai.length === 0) return alert("Nama Pegawai tidak boleh kosong");
+
+            generateQRShortlink(shortlink, nip, namaPegawai, kodeCabang);
+        });
+
+        // Generate QR code untuk mode direct
+        function generateQRDirect(nip, namaPegawai, kodeCabang) {
+            // Jika kodeCabang kosong, ubah menjadi "null"
+            const cabangValue = kodeCabang.length === 0 ? "null" : kodeCabang;
+            
+            // Create URL dengan pola yang diminta
+            generatedUrl = `https://bmri.id/reflivin?af_adset=${nip}&deep_link_sub1=${cabangValue}&deep_link_sub2=${nip}`;
+            
+            // Simpan nama pegawai untuk digunakan di fungsi share
+            currentNamaPegawai = namaPegawai;
+            
+            // Tampilkan URL yang dihasilkan
+            document.getElementById("generated-link").textContent = generatedUrl;
+            
+            // Generate QR code
+            generateQRCode(generatedUrl, nip, cabangValue, "null");
+        }
+
+        // Generate QR code untuk mode shortlink
+        function generateQRShortlink(shortlink, nip, namaPegawai, kodeCabang) {
+            // Buat URL
+            const shortUrl = `https://bmri.id/${shortlink}`;
+            
+            // Buat URL panjang dengan pola yang diminta
+            generatedUrl = `https://livinapp.onelink.me/kNH6/referral?af_adset=${nip}&deep_link_sub1=${kodeCabang || 'null'}&deep_link_sub2=${nip}`;
+            
+            // Simpan nama pegawai untuk digunakan di fungsi share
+            currentNamaPegawai = namaPegawai;
+            
+            // Tampilkan URL yang dihasilkan
+            document.getElementById("generated-link").textContent = generatedUrl;
+            
+            // Generate QR code menggunakan short URL
+            generateQRCode(shortUrl, nip, kodeCabang, shortlink);
+        }
+
+        // Fungsi utama untuk membuat QR code
+        function generateQRCode(url, nip, kodeCabang, shortlink) {
+            const qrDiv = document.getElementById("qr-area");
+            const qrSpinner = document.getElementById("qr-spinner");
+            const captureArea = document.getElementById("capture-area");
+            const btnDownload = document.getElementById("btnDownload");
+            const btnQROnly = document.getElementById("btnDownloadQROnly");
+
+            qrDiv.innerHTML = "";
+            qrSpinner.style.display = "block";
+            captureArea.style.display = "block";
+            btnDownload.style.display = "none";
+            btnQROnly.style.display = "none";
+
+            try {
+                // Hapus QR sebelumnya jika ada
+                while (qrDiv.firstChild) {
+                    qrDiv.removeChild(qrDiv.firstChild);
+                }
+
+                // Buat QR code baru
+                new QRCode(qrDiv, {
+                    text: url,
+                    width: 1000,
+                    height: 1000,
+                    colorDark: "#000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                // Tambahkan logo setelah QR dihasilkan
+                setTimeout(() => {
+                    const canvas = qrDiv.querySelector("canvas");
+                    if (!canvas) {
+                        console.error("Canvas QR tidak terbentuk");
+                        qrSpinner.style.display = "none";
+                        return;
+                    }
+
+                    const ctx = canvas.getContext("2d");
+                    const imgLogo = new Image();
+
+                    imgLogo.onload = function() {
+                        try {
+                            const maxLogoRatio = 0.25;
+                            const logoSize = canvas.width * maxLogoRatio;
+                            const ar = imgLogo.width / imgLogo.height;
+                            const lw = ar > 1 ? logoSize : logoSize * ar;
+                            const lh = ar > 1 ? logoSize / ar : logoSize;
+                            const x = (canvas.width - lw) / 2;
+                            const y = (canvas.height - lh) / 2;
+                            const pad = 8;
+
+                            // Tambahkan latar belakang putih untuk logo
+                            ctx.fillStyle = "#fff";
+                            ctx.beginPath();
+                            ctx.roundRect(x - pad, y - pad, lw + pad * 2, lh + pad * 2, 16);
+                            ctx.fill();
+
+                            // Gambar logo
+                            ctx.drawImage(imgLogo, x, y, lw, lh);
+
+                            // Konversi ke gambar
+                            const img = document.createElement("img");
+                            qrImageDataUrl = canvas.toDataURL("image/png"); // Simpan data URL
+                            img.src = qrImageDataUrl;
+                            img.style.width = "250px";
+                            img.style.height = "250px";
+                            img.alt = "QR Code";
+
+                            qrDiv.innerHTML = "";
+                            qrDiv.appendChild(img);
+
+                            qrSpinner.style.display = "none";
+                            btnDownload.style.display = "block";
+                            btnQROnly.style.display = "block";
+                        } catch (e) {
+                            console.error("Error saat menambahkan logo:", e);
+                            qrSpinner.style.display = "none";
+                        }
+                    };
+
+                    imgLogo.onerror = function() {
+                        console.error("Logo gagal dimuat");
+                        // Tetap tampilkan QR tanpa logo jika logo gagal dimuat
+                        const img = document.createElement("img");
+                        qrImageDataUrl = canvas.toDataURL("image/png"); // Simpan data URL
+                        img.src = qrImageDataUrl;
+                        img.style.width = "250px";
+                        img.style.height = "250px";
+
+                        qrDiv.innerHTML = "";
+                        qrDiv.appendChild(img);
+
+                        qrSpinner.style.display = "none";
+                        btnDownload.style.display = "block";
+                        btnQROnly.style.display = "block";
+                    };
+
+                    // Jika tidak ada logo, tetap tampilkan QR
+                    if (!logoBase64 || logoBase64.trim() === "") {
+                        const img = document.createElement("img");
+                        qrImageDataUrl = canvas.toDataURL("image/png"); // Simpan data URL
+                        img.src = qrImageDataUrl;
+                        img.style.width = "250px";
+                        img.style.height = "250px";
+
+                        qrDiv.innerHTML = "";
+                        qrDiv.appendChild(img);
+
+                        qrSpinner.style.display = "none";
+                        btnDownload.style.display = "block";
+                        btnQROnly.style.display = "block";
+                    } else {
+                        imgLogo.src = logoBase64;
+                    }
+                }, 600);
+            } catch (e) {
+                console.error("Error saat generate QR:", e);
+                qrSpinner.style.display = "none";
+                alert("Terjadi kesalahan saat membuat QR code. Silakan coba lagi.");
+            }
+        }
+
+        // Download PNG
+        function downloadPNG() {
+            const captureArea = document.getElementById("capture-area");
+            let fileName = "";
+            
+            if (currentMode === "direct") {
+                const nip = document.getElementById("nip").value.trim();
+                const kodeCabang = document.getElementById("kodeCabang").value.trim() || "null";
+                fileName = `QR_Livin_${nip}_${kodeCabang}.png`;
+            } else {
+                const shortlink = document.getElementById("shortlink").value.trim();
+                const nip = document.getElementById("nipShortlink").value.trim();
+                const kodeCabang = document.getElementById("kodeCabangShortlink").value.trim() || "null";
+                fileName = `QR_Livin_${shortlink}_${nip}_${kodeCabang}.png`;
+            }
+
+            // Tampilkan loading pada tombol
+            const btn = document.getElementById("btnDownload");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            btn.disabled = true;
+
+            html2canvas(captureArea, {
+                scale: 12,
+                useCORS: true,
+                backgroundColor: "#fff",
+                logging: true
+            }).then(canvas => {
+                const link = document.createElement("a");
+                link.download = fileName;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+
+                // Kembalikan tampilan tombol
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error("Error generating PNG:", err);
+                alert("Gagal membuat PNG. Silakan coba lagi.");
+
+                // Kembalikan tampilan tombol
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // Download QR only
+        function downloadQROnly() {
+            const qrImg = document.querySelector("#qr-area img");
+            let fileName = "";
+            
+            if (currentMode === "direct") {
+                const nip = document.getElementById("nip").value.trim();
+                const kodeCabang = document.getElementById("kodeCabang").value.trim() || "null";
+                fileName = `QR_Only_${nip}_${kodeCabang}.png`;
+            } else {
+                const shortlink = document.getElementById("shortlink").value.trim();
+                const nip = document.getElementById("nipShortlink").value.trim();
+                const kodeCabang = document.getElementById("kodeCabangShortlink").value.trim() || "null";
+                fileName = `QR_Only_${shortlink}_${nip}_${kodeCabang}.png`;
+            }
+
+            if (!qrImg) return alert("QR belum digenerate");
+
+            // Tampilkan loading pada tombol
+            const btn = document.getElementById("btnDownloadQROnly");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+            btn.disabled = true;
+
+            try {
+                const link = document.createElement("a");
+                link.href = qrImg.src;
+                link.download = fileName;
+                link.click();
+            } catch (e) {
+                console.error("Error downloading QR only:", e);
+                alert("Gagal mendownload QR. Silakan coba lagi.");
+            } finally {
+                // Kembalikan tampilan tombol
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Copy link to clipboard
+        document.getElementById("btnCopyLink").addEventListener("click", function() {
+            if (!generatedUrl) return alert("Belum ada link yang digenerate");
+
+            navigator.clipboard.writeText(generatedUrl)
+                .then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '✓ Link Copied!';
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert("Gagal menyalin link ke clipboard");
+                });
+        });
+
+        // Share melalui WhatsApp
+        document.getElementById("btnShareWhatsApp").addEventListener("click", function() {
+            if (!generatedUrl) return alert("Belum ada QR yang digenerate");
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+
+            // Tampilkan indikator loading
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+            btn.disabled = true;
+
+            try {
+                // Buat pesan WhatsApp dengan format yang diminta
+                const whatsappText = `Semangat Pagi Bpk/Ibu ${currentNamaPegawai} berikut link dan QR baru download Livin' by Mandiri berdasarkan keluhan yang di sampaikan melalui form bmri.id/KendalaGMM\n${generatedUrl}`;
+                
+                // Encode teks untuk URL
+                const encodedText = encodeURIComponent(whatsappText);
+                
+                // Buka WhatsApp dengan teks yang sudah disiapkan
+                window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+                
+            } catch (error) {
+                console.error('Error sharing to WhatsApp:', error);
+                alert("Terjadi kesalahan saat membuka WhatsApp. Silakan coba lagi.");
+            } finally {
+                // Kembalikan tampilan tombol ke semula
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body></html>
