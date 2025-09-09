@@ -136,6 +136,38 @@
             display: none;
         }
         
+        .copy-fallback {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        .copy-fallback input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .copy-fallback button {
+            margin: 5px;
+        }
+        
+        .copied {
+            background-color: #4CAF50 !important;
+            color: white !important;
+        }
+        
         @media (max-width: 768px) {
             h2 {
                 font-size: 1.8rem !important;
@@ -149,6 +181,9 @@
                 left: 10px;
                 max-width: none;
             }
+            .copy-fallback {
+                width: 90%;
+            }
         }
     </style>
 </head>
@@ -158,6 +193,17 @@
     <div id="syncStatus" class="alert alert-info sync-status">
         <span class="spinner-border spinner-border-sm" role="status"></span>
         <span id="syncStatusText">Menyinkronkan data...</span>
+    </div>
+
+    <!-- Fallback UI untuk Copy -->
+    <div id="copyFallback" class="copy-fallback">
+        <h5>Salin Tautan</h5>
+        <p>Gunakan tombol salin di bawah atau salin secara manual:</p>
+        <input type="text" id="fallbackCopyInput" readonly>
+        <div class="text-end mt-3">
+            <button class="btn btn-secondary" onclick="document.getElementById('copyFallback').style.display='none'">Tutup</button>
+            <button class="btn btn-primary" onclick="fallbackCopyManual()">Salin</button>
+        </div>
     </div>
 
     <main>
@@ -255,6 +301,197 @@
 
         // Konfigurasi Google Apps Script
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzdNSL8EIp5y9diBESC1wy4Htl-4M1qsO3u1c-R8codHHk3-ZnypGYPTPfSyL9VEaWZ/exec';
+
+        // Class untuk mengelola clipboard dengan fallback
+        class ClipboardManager {
+            constructor() {
+                this.supported = this.checkClipboardSupport();
+            }
+            
+            checkClipboardSupport() {
+                return !!navigator.clipboard && 
+                       !!navigator.clipboard.writeText &&
+                       this.checkPermissionsPolicy();
+            }
+            
+            checkPermissionsPolicy() {
+                try {
+                    // Cek jika clipboard access di-block oleh policy
+                    const temp = document.createElement('textarea');
+                    document.body.appendChild(temp);
+                    temp.select();
+                    const result = document.execCommand('copy');
+                    document.body.removeChild(temp);
+                    return result;
+                } catch (e) {
+                    return false;
+                }
+            }
+            
+            async copyText(text) {
+                try {
+                    if (this.supported) {
+                        await navigator.clipboard.writeText(text);
+                        return { success: true, method: 'modern' };
+                    } else {
+                        return this.fallbackCopy(text);
+                    }
+                } catch (error) {
+                    console.warn('Modern copy failed, trying fallback:', error);
+                    return this.fallbackCopy(text);
+                }
+            }
+            
+            fallbackCopy(text) {
+                try {
+                    // Method 1: execCommand
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.top = '0';
+                    textArea.style.left = '0';
+                    textArea.style.opacity = '0';
+                    
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    if (successful) {
+                        return { success: true, method: 'execCommand' };
+                    }
+                    
+                    // Method 2: Selection API fallback
+                    return this.selectionCopy(text);
+                    
+                } catch (error) {
+                    console.error('Fallback copy failed:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+            
+            selectionCopy(text) {
+                try {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    div.style.whiteSpace = 'pre';
+                    div.style.position = 'fixed';
+                    div.style.top = '0';
+                    div.style.left = '0';
+                    div.style.opacity = '0';
+                    
+                    document.body.appendChild(div);
+                    
+                    const selection = window.getSelection();
+                    const range = document.createRange();
+                    range.selectNodeContents(div);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    const successful = document.execCommand('copy');
+                    selection.removeAllRanges();
+                    document.body.removeChild(div);
+                    
+                    return { success: successful, method: 'selection' };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+            
+            // Alternative untuk mobile devices
+            async copyWithPrompt(text) {
+                try {
+                    // Show prompt dengan text yang bisa di-copy manual
+                    const copyText = prompt('Copy to clipboard:', text);
+                    if (copyText !== null) {
+                        return { success: true, method: 'prompt' };
+                    }
+                    return { success: false, method: 'prompt' };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+        }
+
+        // Class untuk mengelola sharing dengan fallback
+        class ShareManager {
+            constructor() {
+                this.supported = !!navigator.share;
+                this.embedded = this.checkIfEmbedded();
+            }
+            
+            checkIfEmbedded() {
+                try {
+                    return window.self !== window.top;
+                } catch (e) {
+                    return true;
+                }
+            }
+            
+            async share(data) {
+                if (!this.supported) {
+                    return this.fallbackShare(data);
+                }
+                
+                if (this.embedded) {
+                    return this.embeddedShare(data);
+                }
+                
+                try {
+                    await navigator.share(data);
+                    return { success: true, method: 'native' };
+                } catch (error) {
+                    if (error.name === 'NotAllowedError') {
+                        return this.fallbackShare(data);
+                    }
+                    return { success: false, error: error.message };
+                }
+            }
+            
+            embeddedShare(data) {
+                // Behavior khusus untuk embedded context
+                const clipboardManager = new ClipboardManager();
+                const result = clipboardManager.copyText(data.url || window.location.href);
+                
+                if (result.success) {
+                    alert('Link copied to clipboard!');
+                    return { success: true, method: 'embedded-copy' };
+                } else {
+                    // Fallback ke WhatsApp
+                    this.shareViaWhatsApp(data);
+                    return { success: true, method: 'whatsapp' };
+                }
+            }
+            
+            fallbackShare(data) {
+                const url = data.url || window.location.href;
+                const text = data.text || 'Check this out';
+                
+                // Coba copy to clipboard dulu
+                const clipboardManager = new ClipboardManager();
+                if (clipboardManager.copyText(url)) {
+                    alert('Link copied to clipboard!');
+                    return { success: true, method: 'fallback-copy' };
+                } else {
+                    // Fallback ke WhatsApp
+                    this.shareViaWhatsApp(data);
+                    return { success: true, method: 'whatsapp' };
+                }
+            }
+            
+            shareViaWhatsApp(data) {
+                const url = data.url || window.location.href;
+                const text = data.text || 'Check this QR code from Livin by Mandiri';
+                const whatsappText = `${text}: ${url}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`, '_blank');
+            }
+        }
+
+        // Inisialisasi manager
+        const clipboardManager = new ClipboardManager();
+        const shareManager = new ShareManager();
 
         // Form submission untuk mode direct
         document.getElementById("qr-form-direct").addEventListener("submit", function(e) {
@@ -482,22 +719,45 @@
             }
         }
 
-        // Copy link to clipboard
-        document.getElementById("btnCopyLink").addEventListener("click", function() {
+        // Fungsi untuk menampilkan fallback UI copy
+        function showCopyFallback(text) {
+            const fallback = document.getElementById('copyFallback');
+            const input = document.getElementById('fallbackCopyInput');
+            input.value = text;
+            fallback.style.display = 'block';
+        }
+
+        // Fungsi untuk copy manual dari fallback UI
+        function fallbackCopyManual() {
+            const input = document.getElementById('fallbackCopyInput');
+            input.select();
+            try {
+                document.execCommand('copy');
+                alert('Tautan berhasil disalin!');
+                document.getElementById('copyFallback').style.display = 'none';
+            } catch (err) {
+                alert('Gagal menyalin. Silakan salin secara manual.');
+            }
+        }
+
+        // Copy link to clipboard dengan fallback
+        document.getElementById("btnCopyLink").addEventListener("click", async function() {
             if (!generatedUrl) return alert("Belum ada link yang digenerate");
 
-            navigator.clipboard.writeText(generatedUrl)
-                .then(() => {
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '✓ Link Copied!';
-                    setTimeout(() => {
-                        this.innerHTML = originalText;
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Failed to copy: ', err);
-                    alert("Gagal menyalin link ke clipboard");
-                });
+            const result = await clipboardManager.copyText(generatedUrl);
+            
+            if (result.success) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '✓ Link Copied!';
+                this.classList.add('copied');
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.classList.remove('copied');
+                }, 2000);
+            } else {
+                // Tampilkan fallback UI
+                showCopyFallback(generatedUrl);
+            }
         });
 
         // Share link dengan gambar QR
@@ -512,52 +772,26 @@
             btn.disabled = true;
 
             try {
-                // Coba berbagi dengan Web Share API (Level 2 dengan file)
-                if (navigator.share && navigator.canShare) {
-                    // Konversi data URL ke blob
-                    const response = await fetch(qrImageDataUrl);
-                    const blob = await response.blob();
+                const shareData = {
+                    title: 'QR Livin by Mandiri',
+                    text: 'Cobain pakai Livin’ by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward. Download di sini:',
+                    url: generatedUrl
+                };
 
-                    // Buat file dari blob
-                    const nip = document.getElementById("nip").value.trim();
-                    const fileName = `QR_Livin_${nip}.png`;
-
-                    const file = new File([blob], fileName, {
-                        type: 'image/png'
-                    });
-
-                    // Periksa apakah browser mendukung berbagi file
-                    if (navigator.canShare({
-                            files: [file]
-                        })) {
-                        await navigator.share({
-                            title: 'QR Livin by Mandiri',
-                            text: 'Cobain pakai Livin’ by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward. Download di sini:\'',
-                            url: generatedUrl,
-                            files: [file]
-                        });
-                    } else {
-                        // Fallback: berbagi tanpa file
-                        await navigator.share({
-                            title: 'QR Livin by Mandiri',
-                            text: 'Cobain pakai Livin’ by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward. Download di sini:\'',
-                            url: generatedUrl
-                        });
-                    }
-                } else {
-                    // Fallback untuk browser yang tidak mendukung Web Share API
-                    alert(
-                        "Browser Anda tidak mendukung berbagi file. Anda dapat menyalin link secara manual atau download gambar QR-nya.");
+                const result = await shareManager.share(shareData);
+                
+                if (!result.success) {
+                    throw new Error(result.error);
                 }
             } catch (error) {
                 console.error('Error sharing:', error);
-
-                // Fallback: berbagi melalui WhatsApp dengan link
-                if (confirm("Fitur berbagi tidak didukung. Ingin berbagi melalui WhatsApp?")) {
-                    const whatsappText =
-                        `Cobain pakai Livin’ by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward. Download di sini: ${generatedUrl}`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(whatsappText)}`, '_blank');
-                }
+                
+                // Fallback ke WhatsApp
+                shareManager.shareViaWhatsApp({
+                    title: 'QR Livin by Mandiri',
+                    text: 'Cobain pakai Livin’ by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward. Download di sini:',
+                    url: generatedUrl
+                });
             } finally {
                 // Kembalikan tampilan tombol ke semula
                 btn.innerHTML = originalText;
