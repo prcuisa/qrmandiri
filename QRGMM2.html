@@ -187,6 +187,42 @@
             animation: spin 1s linear infinite;
         }
         
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .toast {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .toast.success {
+            background-color: #4CAF50;
+        }
+        
+        .toast.error {
+            background-color: #f44336;
+        }
+        
+        .toast.info {
+            background-color: #2196F3;
+        }
+        
         @media (max-width: 768px) {
             h2 {
                 font-size: 1.8rem !important;
@@ -202,6 +238,11 @@
             }
             .copy-fallback {
                 width: 90%;
+            }
+            .toast-container {
+                right: 10px;
+                left: 10px;
+                max-width: none;
             }
         }
     </style>
@@ -224,6 +265,9 @@
             <button class="btn btn-primary" onclick="fallbackCopyManual()">Salin</button>
         </div>
     </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <main>
         <div class="container py-5">
@@ -321,6 +365,29 @@
         // Konfigurasi Google Apps Script
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbzdNSL8EIp5y9diBESC1wy4Htl-4M1qsO3u1c-R8codHHk3-ZnypGYPTPfSyL9VEaWZ/exec';
 
+        // Fungsi untuk menampilkan toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            const container = document.getElementById('toastContainer');
+            container.appendChild(toast);
+            
+            // Tampilkan toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // Hapus setelah 3 detik
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
         // Fungsi untuk mengkonversi data URL ke Blob
         function dataURLToBlob(dataURL) {
             const parts = dataURL.split(';base64,');
@@ -350,42 +417,18 @@
             }
             
             checkClipboardSupport() {
-                return !!navigator.clipboard && 
-                       !!navigator.clipboard.writeText &&
-                       this.checkPermissionsPolicy();
-            }
-            
-            checkPermissionsPolicy() {
-                try {
-                    // Cek jika clipboard access di-block oleh policy
-                    const temp = document.createElement('textarea');
-                    document.body.appendChild(temp);
-                    temp.select();
-                    const result = document.execCommand('copy');
-                    document.body.removeChild(temp);
-                    return result;
-                } catch (e) {
-                    return false;
-                }
+                // Selalu gunakan fallback method untuk menghindari permissions policy issues
+                return false;
             }
             
             async copyText(text) {
-                try {
-                    if (this.supported) {
-                        await navigator.clipboard.writeText(text);
-                        return { success: true, method: 'modern' };
-                    } else {
-                        return this.fallbackCopy(text);
-                    }
-                } catch (error) {
-                    console.warn('Modern copy failed, trying fallback:', error);
-                    return this.fallbackCopy(text);
-                }
+                // Selalu gunakan fallback method untuk menghindari permissions policy issues
+                return this.fallbackCopy(text);
             }
             
             fallbackCopy(text) {
                 try {
-                    // Method 1: execCommand
+                    // Method 1: execCommand (bekerja di sebagian besar browser)
                     const textArea = document.createElement('textarea');
                     textArea.value = text;
                     textArea.style.position = 'fixed';
@@ -440,20 +483,6 @@
                     return { success: false, error: error.message };
                 }
             }
-            
-            // Alternative untuk mobile devices
-            async copyWithPrompt(text) {
-                try {
-                    // Show prompt dengan text yang bisa di-copy manual
-                    const copyText = prompt('Copy to clipboard:', text);
-                    if (copyText !== null) {
-                        return { success: true, method: 'prompt' };
-                    }
-                    return { success: false, method: 'prompt' };
-                } catch (error) {
-                    return { success: false, error: error.message };
-                }
-            }
         }
 
         // Class untuk mengelola sharing dengan fallback
@@ -473,67 +502,38 @@
             }
             
             async share(data) {
-                if (!this.supported) {
-                    return this.fallbackShare(data);
-                }
-                
+                // Untuk embedded context, selalu gunakan fallback
                 if (this.embedded) {
                     return this.embeddedShare(data);
                 }
                 
-                try {
-                    // Cek jika bisa share file
-                    if (data.files && this.supportedFiles) {
-                        // Cek jika file dapat dibagikan
-                        if (navigator.canShare && navigator.canShare({ files: data.files })) {
-                            await navigator.share(data);
-                            return { success: true, method: 'native-with-files' };
+                // Coba native share jika tersedia
+                if (this.supported) {
+                    try {
+                        await navigator.share(data);
+                        return { success: true, method: 'native' };
+                    } catch (error) {
+                        if (error.name === 'NotAllowedError') {
+                            return this.fallbackShare(data);
                         }
+                        return { success: false, error: error.message };
                     }
-                    
-                    // Fallback ke share tanpa file
-                    const shareData = { ...data };
-                    delete shareData.files; // Hapus properti files
-                    
-                    await navigator.share(shareData);
-                    return { success: true, method: 'native' };
-                } catch (error) {
-                    if (error.name === 'NotAllowedError') {
-                        return this.fallbackShare(data);
-                    }
-                    return { success: false, error: error.message };
+                } else {
+                    // Fallback untuk browser yang tidak mendukung
+                    return this.fallbackShare(data);
                 }
             }
             
             embeddedShare(data) {
-                // Behavior khusus untuk embedded context
-                const clipboardManager = new ClipboardManager();
-                const result = clipboardManager.copyText(data.url || window.location.href);
-                
-                if (result.success) {
-                    alert('Link copied to clipboard!');
-                    return { success: true, method: 'embedded-copy' };
-                } else {
-                    // Fallback ke WhatsApp
-                    this.shareViaWhatsApp(data);
-                    return { success: true, method: 'whatsapp' };
-                }
+                // Untuk embedded context, gunakan WhatsApp sharing
+                this.shareViaWhatsApp(data);
+                return { success: true, method: 'whatsapp' };
             }
             
             fallbackShare(data) {
-                const url = data.url || window.location.href;
-                const text = data.text || 'Check this out';
-                
-                // Coba copy to clipboard dulu
-                const clipboardManager = new ClipboardManager();
-                if (clipboardManager.copyText(url)) {
-                    alert('Link copied to clipboard!');
-                    return { success: true, method: 'fallback-copy' };
-                } else {
-                    // Fallback ke WhatsApp
-                    this.shareViaWhatsApp(data);
-                    return { success: true, method: 'whatsapp' };
-                }
+                // Fallback ke WhatsApp
+                this.shareViaWhatsApp(data);
+                return { success: true, method: 'whatsapp' };
             }
             
             shareViaWhatsApp(data) {
@@ -544,6 +544,14 @@
             }
             
             async shareWithImage(data, imageDataUrl) {
+                // Di embedded context, tidak mungkin mengirim gambar melalui Web Share API
+                // Jadi kita selalu gunakan fallback ke WhatsApp tanpa gambar
+                if (this.embedded) {
+                    this.shareViaWhatsApp(data);
+                    return { success: true, method: 'whatsapp' };
+                }
+                
+                // Untuk non-embedded context, coba share dengan gambar
                 if (!imageDataUrl) {
                     return this.share(data);
                 }
@@ -640,9 +648,6 @@
                         "Content-Type": "application/json"
                     }
                 });
-
-                // Karena menggunakan mode no-cors, kita tidak bisa membaca response
-                // Tapi data akan tetap terkirim
 
                 syncStatus.className = "alert alert-success sync-status";
                 syncStatusText.textContent = "Data berhasil disinkronkan ";
@@ -827,16 +832,19 @@
             input.select();
             try {
                 document.execCommand('copy');
-                alert('Tautan berhasil disalin!');
+                showToast('Tautan berhasil disalin!', 'success');
                 document.getElementById('copyFallback').style.display = 'none';
             } catch (err) {
-                alert('Gagal menyalin. Silakan salin secara manual.');
+                showToast('Gagal menyalin. Silakan salin secara manual.', 'error');
             }
         }
 
         // Copy link to clipboard dengan fallback
         document.getElementById("btnCopyLink").addEventListener("click", async function() {
-            if (!generatedUrl) return alert("Belum ada link yang digenerate");
+            if (!generatedUrl) {
+                showToast('Belum ada link yang digenerate', 'error');
+                return;
+            }
 
             const result = await clipboardManager.copyText(generatedUrl);
             
@@ -844,6 +852,8 @@
                 const originalText = this.innerHTML;
                 this.innerHTML = '✓ Link Copied!';
                 this.classList.add('copied');
+                showToast('Tautan berhasil disalin!', 'success');
+                
                 setTimeout(() => {
                     this.innerHTML = originalText;
                     this.classList.remove('copied');
@@ -856,10 +866,9 @@
 
         // Share link dengan gambar QR
         document.getElementById("btnShare").addEventListener("click", async function() {
-            if (!generatedUrl) return alert("Belum ada QR yang digenerate");
-            if (!qrImageDataUrl) {
-                console.warn("QR image data not available");
-                // Tetap lanjutkan dengan share teks saja
+            if (!generatedUrl) {
+                showToast('Belum ada QR yang digenerate', 'error');
+                return;
             }
 
             const btn = this;
