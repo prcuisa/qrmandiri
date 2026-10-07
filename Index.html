@@ -1,0 +1,1312 @@
+<html lang="id"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QR Generator Mandiri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f4f6fb;--surface:#ffffff;--surface-2:#f8fafc;
+  --text:#0b1220;--text-2:#475569;--text-3:#94a3b8;
+  --border:#e2e8f0;--border-2:#cbd5e1;
+  --primary:#0055A5;--primary-2:#007dfe;--success:#10b981;--danger:#ef4444;
+  --grad-primary:linear-gradient(135deg,#0055A5 0%,#007dfe 100%);
+  --grad-soft:linear-gradient(135deg,rgba(0,85,165,.06),rgba(0,125,254,.06));
+  --r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;
+  --shadow-xs:0 1px 2px rgba(15,23,42,.05);
+  --shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
+  --shadow-md:0 4px 12px rgba(15,23,42,.07),0 2px 4px rgba(15,23,42,.05);
+  --shadow-lg:0 12px 32px -8px rgba(15,23,42,.14),0 4px 10px -4px rgba(15,23,42,.06);
+  --shadow-xl:0 24px 48px -16px rgba(15,23,42,.22),0 8px 16px -8px rgba(15,23,42,.08);
+  --t:220ms cubic-bezier(.4,0,.2,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(1200px 600px at 90% -10%,rgba(0,125,254,.10),transparent 60%),radial-gradient(900px 500px at -10% 20%,rgba(0,85,165,.08),transparent 60%)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+input{font-family:inherit}
+
+.app{position:relative;z-index:1;flex:1;display:flex;flex-direction:column}
+.app-main{flex:1;width:100%;max-width:1080px;margin:0 auto;padding:0 20px 40px}
+
+.hero{padding:48px 20px 24px;text-align:center;position:relative}
+.brand-mark{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);font-size:.82rem;font-weight:600;color:var(--text-2);margin-bottom:24px}
+.brand-mark i{color:var(--primary);font-size:1rem}
+.hero-logo{width:88px;height:88px;margin:0 auto 22px;border-radius:24px;background:var(--grad-primary);display:grid;place-items:center;position:relative;box-shadow:0 20px 40px -12px rgba(0,85,165,.45),0 8px 16px -6px rgba(0,85,165,.25);animation:heroFloat 5s ease-in-out infinite}
+.hero-logo::after{content:'';position:absolute;inset:-6px;border-radius:30px;background:var(--grad-primary);filter:blur(22px);opacity:.4;z-index:-1}
+.hero-logo svg{width:48px;height:48px;fill:#fff}
+@keyframes heroFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero h1{font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-bottom:12px;background:linear-gradient(135deg,#0b1220 0%,#1e3a5f 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p.lead{color:var(--text-2);font-size:clamp(.95rem,1.4vw,1.05rem);max-width:520px;margin:0 auto}
+
+.stepper{display:flex;justify-content:center;align-items:center;gap:8px;margin:32px auto 28px;padding:8px;border-radius:999px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);width:fit-content;max-width:100%}
+.step{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--text-3);transition:var(--t);white-space:nowrap}
+.step .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);border:1.5px solid var(--border-2);font-size:.72rem;font-weight:700;color:var(--text-3);transition:var(--t)}
+.step.active{color:var(--primary);background:var(--grad-soft)}
+.step.active .dot{background:var(--grad-primary);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(0,125,254,.35)}
+.step.done{color:var(--success)}
+.step.done .dot{background:var(--success);color:#fff;border-color:transparent}
+.step.done .dot::before{content:'\f00c';font-family:'Font Awesome 6 Free';font-weight:900;font-size:.62rem}
+.step.done .dot span{display:none}
+.step-divider{width:24px;height:2px;background:var(--border-2);border-radius:2px}
+
+.view{display:none;animation:viewIn .45s cubic-bezier(.4,0,.2,1)}
+.view.active{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.section-title{font-size:1.1rem;font-weight:700;letter-spacing:-.01em;margin-bottom:6px;color:var(--text)}
+.section-sub{font-size:.88rem;color:var(--text-2);margin-bottom:20px}
+.picker-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.prod-card{position:relative;text-align:left;padding:20px;border-radius:var(--r-lg);background:var(--surface);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);transition:transform var(--t),box-shadow var(--t),border-color var(--t);overflow:hidden;isolation:isolate}
+.prod-card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--card-grad);opacity:0;transition:opacity var(--t);z-index:-1}
+.prod-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--card-grad);opacity:0;transition:opacity var(--t)}
+.prod-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:transparent}
+.prod-card:hover::before{opacity:.06}
+.prod-card:hover::after{opacity:1}
+.prod-card:active{transform:translateY(-2px)}
+.prod-card .prod-icon{width:48px;height:48px;border-radius:14px;background:var(--card-grad);display:grid;place-items:center;color:#fff;font-size:1.2rem;margin-bottom:16px;box-shadow:0 8px 18px -6px var(--card-shadow)}
+.prod-card h3{font-size:1rem;font-weight:700;letter-spacing:-.01em;margin-bottom:4px;color:var(--text)}
+.prod-card p{font-size:.82rem;color:var(--text-2);line-height:1.45;margin-bottom:14px}
+.prod-card .prod-cta{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--primary);transition:gap var(--t)}
+.prod-card:hover .prod-cta{gap:10px}
+
+.back-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.85rem;font-weight:600;color:var(--text-2);box-shadow:var(--shadow-xs);margin-bottom:20px;transition:var(--t)}
+.back-btn:hover{color:var(--text);border-color:var(--border-2);transform:translateX(-2px)}
+.form-shell{background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--shadow-lg);padding:clamp(24px,3vw,36px);max-width:640px;margin:0 auto;position:relative;overflow:hidden}
+.form-shell::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--theme-grad)}
+.form-head{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.form-head .form-head-icon{width:52px;height:52px;border-radius:16px;flex-shrink:0;background:var(--theme-grad);display:grid;place-items:center;color:#fff;font-size:1.3rem;box-shadow:0 10px 22px -8px var(--theme-shadow)}
+.form-head h2{font-size:1.15rem;font-weight:700;letter-spacing:-.01em;margin:0;line-height:1.3}
+.form-head p{font-size:.83rem;color:var(--text-2);margin:2px 0 0}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:8px}
+.field label .opt{color:var(--text-3);font-weight:500}
+.input-wrap{position:relative}
+.input-wrap .in-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:.9rem;pointer-events:none;transition:color var(--t)}
+.input-wrap input{width:100%;padding:14px 14px 14px 42px;border:1.5px solid var(--border);border-radius:var(--r-md);font-size:.95rem;color:var(--text);background:var(--surface-2);transition:border-color var(--t),box-shadow var(--t),background var(--t)}
+.input-wrap input::placeholder{color:var(--text-3)}
+.input-wrap input:focus{outline:none;background:var(--surface);border-color:var(--primary-2);box-shadow:0 0 0 4px rgba(0,125,254,.12)}
+.input-wrap input:focus + .in-icon,.input-wrap input:not(:placeholder-shown) + .in-icon{color:var(--primary-2)}
+.input-wrap input.is-invalid{border-color:var(--danger);background:#fef2f2}
+.input-wrap input.is-invalid + .in-icon{color:var(--danger)}
+.field .help{font-size:.75rem;color:var(--text-3);margin-top:6px;display:block}
+.field .err{font-size:.78rem;color:var(--danger);margin-top:6px;display:none;align-items:center;gap:6px;font-weight:500}
+.field .err.show{display:flex;animation:errIn .25s ease}
+@keyframes errIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.btn-primary-cta{width:100%;padding:16px 24px;border-radius:var(--r-md);background:var(--theme-grad);color:#fff;font-size:1rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 24px -8px var(--theme-shadow);transition:transform var(--t),box-shadow var(--t),filter var(--t);margin-top:8px}
+.btn-primary-cta:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px var(--theme-shadow);filter:brightness(1.05)}
+.btn-primary-cta:active{transform:translateY(0)}
+.btn-primary-cta:disabled{opacity:.6;cursor:not-allowed}
+
+.result-shell{max-width:580px;margin:0 auto}
+.result-card{background:var(--surface);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--shadow-xl);overflow:hidden;position:relative}
+.result-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:var(--theme-grad)}
+.result-head{padding:28px 28px 12px;text-align:center;position:relative;background:linear-gradient(180deg,var(--theme-soft) 0%,transparent 100%)}
+.success-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;background:rgba(16,185,129,.12);color:#059669;font-size:.82rem;font-weight:700;margin-bottom:18px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+.success-badge i{animation:checkPop .5s cubic-bezier(.34,1.56,.64,1) .15s both}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes checkPop{0%{transform:scale(0) rotate(-45deg)}60%{transform:scale(1.3) rotate(0)}100%{transform:scale(1) rotate(0)}}
+.result-head h2{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+.result-head p{color:var(--text-2);font-size:.9rem;margin:0}
+
+.qr-stage{padding:8px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.qr-frame-wrap{position:relative;padding:16px}
+.qr-frame-wrap::before{content:'';position:absolute;inset:6px;border-radius:36px;background:var(--theme-grad);opacity:.28;filter:blur(32px);z-index:0;animation:glowPulse 4s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{opacity:.22;transform:scale(1)}50%{opacity:.36;transform:scale(1.03)}}
+.qr-corner{position:absolute;width:28px;height:28px;pointer-events:none;border:3.5px solid var(--theme-color,#0055A5);z-index:3;filter:drop-shadow(0 2px 6px rgba(0,0,0,.08))}
+.qr-corner.tl{top:0;left:0;border-right:0;border-bottom:0;border-top-left-radius:14px}
+.qr-corner.tr{top:0;right:0;border-left:0;border-bottom:0;border-top-right-radius:14px}
+.qr-corner.bl{bottom:0;left:0;border-right:0;border-top:0;border-bottom-left-radius:14px}
+.qr-corner.br{bottom:0;right:0;border-left:0;border-top:0;border-bottom-right-radius:14px}
+.qr-frame{position:relative;z-index:2;padding:18px;border-radius:22px;background:linear-gradient(145deg,#ffffff 0%,#fbfcfe 60%,#f4f7fb 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 0 0 1.5px rgba(15,23,42,.06),0 22px 44px -18px rgba(15,23,42,.18),0 8px 16px -8px rgba(15,23,42,.08);transition:transform .35s cubic-bezier(.4,0,.2,1),box-shadow .35s}
+.qr-frame:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.9),0 0 0 1.5px rgba(15,23,42,.06),0 28px 52px -18px rgba(15,23,42,.22),0 10px 20px -8px rgba(15,23,42,.10)}
+.qr-frame-inner{position:relative;display:grid;place-items:center;width:260px;height:260px;border-radius:12px;overflow:hidden;background:#fff}
+.qr-frame-inner img{display:block;width:100%;height:100%;border-radius:12px;-webkit-user-drag:none;user-select:none}
+.qr-loading{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#f8fafc,#eef2f7);border-radius:12px;position:relative}
+.qr-loading::after{content:'';position:absolute;inset:12px;border-radius:8px;border:1px dashed rgba(15,23,42,.08)}
+.qr-loading .ldr{width:44px;height:44px;border-radius:50%;border:3px solid rgba(15,23,42,.10);border-top-color:var(--theme-color,#0055A5);animation:spin .8s linear infinite;z-index:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qr-hint{display:inline-flex;align-items:center;gap:9px;padding:9px 18px;border-radius:999px;background:var(--surface);border:1px solid var(--border);font-size:.78rem;font-weight:600;color:var(--text-2);box-shadow:0 1px 2px rgba(15,23,42,.04),0 4px 10px -4px rgba(15,23,42,.06)}
+.qr-hint .pulse-dot{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 0 0 rgba(16,185,129,.55);animation:pulse 1.9s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.55)}70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.qr-hint i{color:var(--theme-color,#0055A5);font-size:.88rem}
+
+.result-body{padding:8px 28px 28px}
+.link-pill{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--border);margin-bottom:20px}
+.link-pill i.fa-link{color:var(--text-3);font-size:.85rem;flex-shrink:0}
+.link-pill .link-val{flex:1;font-size:.82rem;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'SF Mono',Menlo,Consolas,monospace}
+.link-pill .mini-copy{width:32px;height:32px;border-radius:8px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;color:var(--text-2);font-size:.82rem;transition:var(--t);flex-shrink:0}
+.link-pill .mini-copy:hover{color:var(--primary);border-color:var(--primary-2);background:#f0f7ff}
+.link-pill .mini-copy.copied{background:var(--success);color:#fff;border-color:transparent}
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.action-tile{padding:16px 12px;border-radius:var(--r-md);background:var(--surface);border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--text);transition:var(--t)}
+.action-tile i{font-size:1.05rem;color:var(--text-2);transition:var(--t)}
+.action-tile:hover{border-color:var(--primary-2);background:#f0f7ff;transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.action-tile:hover i{color:var(--primary-2)}
+.action-tile:active{transform:translateY(0)}
+.action-tile.primary{background:var(--theme-grad);color:#fff;border-color:transparent;box-shadow:0 8px 20px -8px var(--theme-shadow)}
+.action-tile.primary i{color:#fff}
+.action-tile.primary:hover{filter:brightness(1.06);background:var(--theme-grad)}
+.action-tile.loading{pointer-events:none;opacity:.8}
+.action-tile.loading i{animation:spin .8s linear infinite}
+.result-foot{margin-top:22px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:.75rem;color:var(--text-3);line-height:1.6}
+
+.main-footer{margin-top:auto;padding:32px 20px 28px;border-top:1px solid var(--border);background:var(--surface);text-align:center;position:relative;z-index:1}
+.footer-inner{max-width:1080px;margin:0 auto}
+.footer-brand{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:12px}
+.footer-brand .fb-icon{width:32px;height:32px;border-radius:10px;background:var(--grad-primary);display:grid;place-items:center;color:#fff;font-size:.8rem}
+.footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:8px 20px;font-size:.82rem;color:var(--text-2);margin-bottom:12px}
+.footer-links a{transition:var(--t);font-weight:500}
+.footer-links a:hover{color:var(--primary)}
+.footer-copy{font-size:.75rem;color:var(--text-3)}
+
+.toast-wrap{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1100;display:flex;flex-direction:column;gap:10px;max-width:min(420px,calc(100vw - 32px));width:100%;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--r-md);background:#0b1220;color:#fff;font-size:.88rem;font-weight:500;box-shadow:var(--shadow-xl);pointer-events:auto;opacity:0;transform:translateY(20px) scale(.96);transition:opacity .3s,transform .3s}
+.toast.show{opacity:1;transform:translateY(0) scale(1)}
+.toast i{font-size:1rem;flex-shrink:0}
+.toast.success i{color:#34d399}
+.toast.error i{color:#f87171}
+.toast.info i{color:#60a5fa}
+
+.sync-bar{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:1050;display:flex;align-items:center;gap:10px;padding:10px 18px;border-radius:999px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-lg);font-size:.82rem;font-weight:600;color:var(--text-2);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none}
+.sync-bar.show{transform:translateX(-50%) translateY(0);opacity:1}
+.sync-bar .sync-spin{width:14px;height:14px;border-radius:50%;border:2px solid var(--border-2);border-top-color:var(--primary-2);animation:spin .8s linear infinite;display:grid;place-items:center}
+.sync-bar.ok .sync-spin,.sync-bar.err .sync-spin{border:none;animation:none;font-size:.9rem;width:auto;height:auto}
+.sync-bar.ok .sync-spin{color:var(--success)}
+.sync-bar.err .sync-spin{color:var(--danger)}
+
+.modal-back{position:fixed;inset:0;background:rgba(11,18,32,.5);backdrop-filter:blur(6px);z-index:1200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-back.show{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--surface);border-radius:var(--r-lg);padding:26px;max-width:440px;width:100%;box-shadow:var(--shadow-xl);animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modalIn{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-box h3{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+.modal-box p{font-size:.85rem;color:var(--text-2);margin-bottom:16px}
+.modal-box input{width:100%;padding:12px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border);font-size:.85rem;background:var(--surface-2);font-family:'SF Mono',Menlo,Consolas,monospace}
+.modal-box input:focus{outline:none;border-color:var(--primary-2);box-shadow:0 0 0 3px rgba(0,125,254,.12)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+.modal-actions button{padding:10px 18px;border-radius:var(--r-sm);font-weight:600;font-size:.85rem;transition:var(--t)}
+.btn-ghost{background:var(--surface-2);border:1px solid var(--border);color:var(--text-2)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border-2)}
+.btn-fill{background:var(--grad-primary);color:#fff;box-shadow:0 6px 16px -6px rgba(0,125,254,.4)}
+.btn-fill:hover{filter:brightness(1.05)}
+
+@media (max-width:640px){
+  .hero{padding:32px 16px 16px}
+  .hero-logo{width:72px;height:72px}
+  .hero-logo svg{width:38px;height:38px}
+  .stepper{padding:6px;gap:4px}
+  .step{padding:6px 10px;font-size:.75rem;gap:6px}
+  .step .dot{width:18px;height:18px;font-size:.65rem}
+  .step-divider{width:12px}
+  .app-main{padding:0 16px 32px}
+  .picker-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .prod-card{padding:16px}
+  .prod-card .prod-icon{width:42px;height:42px;font-size:1.05rem;margin-bottom:12px}
+  .prod-card h3{font-size:.92rem}
+  .prod-card p{font-size:.75rem}
+  .qr-stage{padding:4px 16px 20px;gap:14px}
+  .qr-frame-wrap{padding:12px}
+  .qr-corner{width:24px;height:24px;border-width:3px}
+  .qr-frame{padding:14px;border-radius:18px}
+  .qr-frame-inner{width:220px;height:220px}
+  .qr-hint{font-size:.74rem;padding:8px 14px}
+  .result-head,.result-body{padding-left:20px;padding-right:20px}
+  .action-grid{grid-template-columns:repeat(2,1fr)}
+  .toast-wrap{bottom:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div id="syncBar" class="sync-bar">
+    <span class="sync-spin"></span>
+    <span id="syncText">Menyinkronkan data...</span>
+  </div>
+
+  <div id="copyModal" class="modal-back">
+    <div class="modal-box">
+      <h3>Salin Tautan</h3>
+      <p>Salin manual jika tombol otomatis tidak bekerja:</p>
+      <input id="fallbackInput" readonly="">
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeCopyModal()">Tutup</button>
+        <button class="btn-fill" onclick="fallbackCopyManual()">Salin</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <header class="hero">
+    <div class="brand-mark">
+      <i class="fas fa-shield-halved"></i>
+      <span>Official Partner Tools</span>
+    </div>
+    <div class="hero-logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="8" height="8" rx="1.5"></rect>
+        <rect x="3" y="13" width="8" height="8" rx="1.5"></rect>
+        <rect x="13" y="3" width="8" height="8" rx="1.5"></rect>
+        <rect x="13" y="13" width="3" height="3" rx=".6"></rect>
+        <rect x="18" y="13" width="3" height="3" rx=".6"></rect>
+        <rect x="13" y="18" width="3" height="3" rx=".6"></rect>
+        <rect x="18" y="18" width="3" height="3" rx=".6"></rect>
+      </svg>
+    </div>
+    <h1>QR Generator Mandiri</h1>
+    <p class="lead">Buat QR referral Livin' by Mandiri dalam 3 langkah mudah. Pilih produk, isi kode, langsung bagikan.</p>
+  </header>
+
+  <div class="stepper" id="stepper">
+    <div class="step active" data-step="1"><span class="dot"><span>1</span></span> Pilih Produk</div>
+    <div class="step-divider"></div>
+    <div class="step" data-step="2"><span class="dot"><span>2</span></span> Isi Data</div>
+    <div class="step-divider"></div>
+    <div class="step" data-step="3"><span class="dot"><span>3</span></span> QR Siap</div>
+  </div>
+
+  <main class="app-main">
+    <section id="view-picker" class="view active">
+      <div class="section-title">Pilih jenis produk</div>
+      <div class="section-sub">Ketuk salah satu untuk membuat QR referral</div>
+      <div class="picker-grid" id="pickerGrid">
+    <button class="prod-card" data-prod="mgm" style="--card-grad:linear-gradient(135deg,#0055A5,#007dfe);--card-shadow:rgba(0,85,165,.35)">
+      <div class="prod-icon"><i class="fas fa-university"></i></div>
+      <h3>MGM</h3>
+      <p>Buka Rekening</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="valas" style="--card-grad:linear-gradient(135deg,#10b981,#14b8a6);--card-shadow:rgba(16,185,129,.35)">
+      <div class="prod-icon"><i class="fas fa-dollar-sign"></i></div>
+      <h3>Valas</h3>
+      <p>Rekening Valas</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="mtr" style="--card-grad:linear-gradient(135deg,#f59e0b,#fb923c);--card-shadow:rgba(245,158,11,.35)">
+      <div class="prod-icon"><i class="fas fa-piggy-bank"></i></div>
+      <h3>MTR</h3>
+      <p>Tabungan Rencana</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="investasi" style="--card-grad:linear-gradient(135deg,#8b5cf6,#ec4899);--card-shadow:rgba(139,92,246,.35)">
+      <div class="prod-icon"><i class="fas fa-chart-line"></i></div>
+      <h3>Investasi</h3>
+      <p>Produk Investasi</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="cc" style="--card-grad:linear-gradient(135deg,#f97316,#ef4444);--card-shadow:rgba(239,68,68,.35)">
+      <div class="prod-icon"><i class="fas fa-credit-card"></i></div>
+      <h3>Credit Card</h3>
+      <p>Kartu Kredit</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="deposito" style="--card-grad:linear-gradient(135deg,#0ea5e9,#06b6d4);--card-shadow:rgba(14,165,233,.35)">
+      <div class="prod-icon"><i class="fas fa-landmark"></i></div>
+      <h3>Deposito</h3>
+      <p>Deposito Berjangka</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="giro" style="--card-grad:linear-gradient(135deg,#0d9488,#14b8a6);--card-shadow:rgba(13,148,136,.35)">
+      <div class="prod-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+      <h3>Giro</h3>
+      <p>Rekening Giro</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="kasb" style="--card-grad:linear-gradient(135deg,#4f46e5,#7c3aed);--card-shadow:rgba(99,102,241,.35)">
+      <div class="prod-icon"><i class="fas fa-file-contract"></i></div>
+      <h3>Livin KA</h3>
+      <p>Livin KA - SBN</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="nextg" style="--card-grad:linear-gradient(135deg,#0891b2,#3b82f6);--card-shadow:rgba(8,145,178,.35)">
+      <div class="prod-icon"><i class="fas fa-rocket"></i></div>
+      <h3>Next-G</h3>
+      <p>Tabungan Next-G</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  
+    <button class="prod-card" data-prod="emas" style="--card-grad:linear-gradient(135deg,#d97706,#fbbf24);--card-shadow:rgba(217,119,6,.35)">
+      <div class="prod-icon"><i class="fas fa-coins"></i></div>
+      <h3>Tabungan Emas</h3>
+      <p>Tabungan Emas</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  </div>
+    </section>
+
+    <section id="view-form" class="view">
+      <button class="back-btn" id="backToPicker">
+        <i class="fas fa-arrow-left"></i> Kembali ke pilihan
+      </button>
+      <div id="formMount"></div>
+    </section>
+
+    <section id="view-result" class="view">
+      <button class="back-btn" id="backToForm">
+        <i class="fas fa-arrow-left"></i> Buat QR baru
+      </button>
+      <div id="resultMount"></div>
+    </section>
+  </main>
+
+  <footer class="main-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="fb-icon"><i class="fas fa-qrcode"></i></div>
+        QR Generator Mandiri
+      </div>
+      <div class="footer-links">
+        <span>Powered by <a href="https://prcuisa.com/" target="_blank">Prcuisa Labs</a></span>
+        <span>·</span>
+        <span>In collaboration with <a href="https://bankmandiri.co.id/" target="_blank">Bank Mandiri</a></span>
+      </div>
+      <div class="footer-copy">© 2026 QR Generator Mandiri · Bank Mandiri terdaftar dan diawasi oleh OJK</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — 10 Produk
+   MGM: ref WAJIB
+   Lainnya: ref OPSIONAL, kosong auto "null"
+   ============================================================ */
+const GENERATORS = {
+  mgm: {
+    tabLabel: 'MGM', short: 'Buka Rekening',
+    tabIcon: 'fas fa-university',
+    formHeading: 'Buka Rekening Mandiri',
+    buttonLabel: 'Generate QR MGM',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka rekening Mandiri',
+    theme: { grad: 'linear-gradient(135deg,#0055A5,#007dfe)', color: '#0055A5', soft: 'rgba(0,125,254,.08)', shadow: 'rgba(0,85,165,.35)' },
+    refLabel: 'Kode MGM',
+    refPlaceholder: 'Contoh: MGM1234567',
+    refHint: 'Harus diawali "MGM", maks 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: false,
+    refValidate: (v) => v.startsWith('MGM'),
+    refError: 'Kode MGM harus diawali "MGM" dan maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/reflivin?af_adset=${ref}&deep_link_sub1=${cabang}&deep_link_sub2=${ref}`
+  },
+  valas: {
+    tabLabel: 'Valas', short: 'Rekening Valas',
+    tabIcon: 'fas fa-dollar-sign',
+    formHeading: 'Buka Rekening Valas',
+    buttonLabel: 'Generate QR Valas',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka rekening Valas',
+    theme: { grad: 'linear-gradient(135deg,#10b981,#14b8a6)', color: '#10b981', soft: 'rgba(16,185,129,.08)', shadow: 'rgba(16,185,129,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refvalas?af_adset=vls${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  mtr: {
+    tabLabel: 'MTR', short: 'Tabungan Rencana',
+    tabIcon: 'fas fa-piggy-bank',
+    formHeading: 'Mandiri Tabungan Rencana',
+    buttonLabel: 'Generate QR MTR',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka Tabungan Rencana',
+    theme: { grad: 'linear-gradient(135deg,#f59e0b,#fb923c)', color: '#f59e0b', soft: 'rgba(245,158,11,.08)', shadow: 'rgba(245,158,11,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refmtr?af_adset=mtr${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  investasi: {
+    tabLabel: 'Investasi', short: 'Produk Investasi',
+    tabIcon: 'fas fa-chart-line',
+    formHeading: 'Investasi Mandiri',
+    buttonLabel: 'Generate QR Investasi',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk produk Investasi',
+    theme: { grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', color: '#8b5cf6', soft: 'rgba(139,92,246,.08)', shadow: 'rgba(139,92,246,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refinvest?af_adset=inv${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  cc: {
+    tabLabel: 'Credit Card', short: 'Kartu Kredit',
+    tabIcon: 'fas fa-credit-card',
+    formHeading: 'Credit Card Mandiri',
+    buttonLabel: 'Generate QR Credit Card',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk ajukan Credit Card',
+    theme: { grad: 'linear-gradient(135deg,#f97316,#ef4444)', color: '#ef4444', soft: 'rgba(239,68,68,.08)', shadow: 'rgba(239,68,68,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refcc?af_adset=cc${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  deposito: {
+    tabLabel: 'Deposito', short: 'Deposito Berjangka',
+    tabIcon: 'fas fa-landmark',
+    formHeading: 'Deposito Mandiri',
+    buttonLabel: 'Generate QR Deposito',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka Deposito',
+    theme: { grad: 'linear-gradient(135deg,#0ea5e9,#06b6d4)', color: '#0ea5e9', soft: 'rgba(14,165,233,.08)', shadow: 'rgba(14,165,233,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refdepo?af_adset=dep${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  giro: {
+    tabLabel: 'Giro', short: 'Rekening Giro',
+    tabIcon: 'fas fa-file-invoice-dollar',
+    formHeading: 'Buka Rekening Giro',
+    buttonLabel: 'Generate QR Giro',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka rekening Giro',
+    theme: { grad: 'linear-gradient(135deg,#0d9488,#14b8a6)', color: '#0d9488', soft: 'rgba(13,148,136,.08)', shadow: 'rgba(13,148,136,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refgiro?af_adset=gir${ref}&deep_link_sub2=GIR-IDR-OL&deep_link_sub3=${ref}&deep_link_sub4=${cabang}`
+  },
+  kasb: {
+    tabLabel: 'Livin KA', short: 'Livin KA - SBN',
+    tabIcon: 'fas fa-file-contract',
+    formHeading: 'Livin Kartu Anggota (SBN)',
+    buttonLabel: 'Generate QR Livin KA - SBN',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk aktivasi Livin KA - SBN',
+    theme: { grad: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#4f46e5', soft: 'rgba(99,102,241,.08)', shadow: 'rgba(99,102,241,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral SBN',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refkasb?af_adset=kasb${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  nextg: {
+    tabLabel: 'Next-G', short: 'Tabungan Next-G',
+    tabIcon: 'fas fa-rocket',
+    formHeading: 'Tabungan Next-G',
+    buttonLabel: 'Generate QR Tabungan Next-G',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka Tabungan Next-G',
+    theme: { grad: 'linear-gradient(135deg,#0891b2,#3b82f6)', color: '#0891b2', soft: 'rgba(8,145,178,.08)', shadow: 'rgba(8,145,178,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral Next-G',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refnextg?af_adset=nxt${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  },
+  emas: {
+    tabLabel: 'Tabungan Emas', short: 'Tabungan Emas',
+    tabIcon: 'fas fa-coins',
+    formHeading: 'Tabungan Emas Mandiri',
+    buttonLabel: 'Generate QR Tabungan Emas',
+    brand: "Livin' by Mandiri",
+    description: 'Scan QR code ini untuk buka Tabungan Emas',
+    theme: { grad: 'linear-gradient(135deg,#d97706,#fbbf24)', color: '#d97706', soft: 'rgba(217,119,6,.08)', shadow: 'rgba(217,119,6,.35)' },
+    refLabel: 'Kode Referral',
+    refPlaceholder: 'Masukkan kode referral Emas',
+    refHint: 'Opsional, maksimal 40 karakter',
+    refIcon: 'fas fa-hashtag',
+    refMaxLength: 40,
+    refOptional: true,
+    refValidate: (v) => v.length <= 40,
+    refError: 'Kode Referral maksimal 40 karakter',
+    buildUrl: ({ ref, cabang }) =>
+      `https://bmri.id/refemas?af_adset=emr${ref}&deep_link_sub2=${ref}&deep_link_sub3=${cabang}`
+  }
+};
+
+/* ============================================================
+   CONSTANTS & STATE
+   ============================================================ */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzdNSL8EIp5y9diBESC1wy4Htl-4M1qsO3u1c-R8codHHk3-ZnypGYPTPfSyL9VEaWZ/exec';
+const LOGO_BASE64 = "https://prcuisa.com/tools/Logo.png";
+
+const state = { current: null, urls: {}, images: {}, step: 1 };
+
+/* ============================================================
+   QR CONFIG — shadow OFF, clearance lebih lega
+   ============================================================ */
+const QR_CONFIG = {
+  errorLevelWithLogo: QRCode.CorrectLevel.H,
+  errorLevelNoLogo:   QRCode.CorrectLevel.Q,
+
+  size:              1024,
+  paddingRatio:      0.06,
+  darkColor:         '#0a0e1a',
+  lightColor:        '#ffffff',
+
+  dotRadiusRatio:    0.42,
+  finderOuterRadius: 1.4,
+  finderInnerRadius: 0.9,
+
+  logoMaxRatio:      0.26,
+  logoPaddingRatio:  0.06,
+  logoRadiusRatio:   0.30,
+  logoClearModules:  1.1,                   // ← lebih lega, dot tidak nempel
+  logoBg:            '#ffffff',
+  logoBorderWidth:   0,
+  logoBorderColor:   'transparent',
+  logoShadow:        false,                 // ← shadow DIHILANGKAN
+  logoShadowColor:   'rgba(15,23,42,0.0)'
+};
+
+/* ============================================================
+   VIEW NAVIGATION
+   ============================================================ */
+function setStep(n) {
+  state.step = n;
+  ['view-picker','view-form','view-result'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(n === 1 ? 'view-picker' : n === 2 ? 'view-form' : 'view-result').classList.add('active');
+  document.querySelectorAll('.step').forEach(s => {
+    const sn = +s.dataset.step;
+    s.classList.toggle('active', sn === n);
+    s.classList.toggle('done', sn < n);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   RENDER PICKER
+   ============================================================ */
+function renderPicker() {
+  const grid = document.getElementById('pickerGrid');
+  grid.innerHTML = Object.entries(GENERATORS).map(([key, g]) => `
+    <button class="prod-card" data-prod="${key}"
+      style="--card-grad:${g.theme.grad};--card-shadow:${g.theme.shadow}">
+      <div class="prod-icon"><i class="${g.tabIcon}"></i></div>
+      <h3>${g.tabLabel}</h3>
+      <p>${g.short}</p>
+      <span class="prod-cta">Pilih <i class="fas fa-arrow-right"></i></span>
+    </button>
+  `).join('');
+
+  grid.querySelectorAll('.prod-card').forEach(card => {
+    card.addEventListener('click', () => openForm(card.dataset.prod));
+  });
+}
+
+/* ============================================================
+   OPEN FORM
+   ============================================================ */
+function openForm(key) {
+  const g = GENERATORS[key];
+  state.current = key;
+
+  const refOptionalLabel = g.refOptional ? ' <span class="opt">(opsional)</span>' : '';
+
+  const mount = document.getElementById('formMount');
+  mount.innerHTML = `
+    <div class="form-shell" style="--theme-grad:${g.theme.grad};--theme-soft:${g.theme.soft};--theme-shadow:${g.theme.shadow};--theme-color:${g.theme.color}">
+      <div class="form-head">
+        <div class="form-head-icon"><i class="${g.tabIcon}"></i></div>
+        <div>
+          <h2>${g.formHeading}</h2>
+          <p>Isi data di bawah untuk membuat QR</p>
+        </div>
+      </div>
+
+      <form id="mainForm" novalidate>
+        <div class="field">
+          <label for="refInput">${g.refLabel}${refOptionalLabel}</label>
+          <div class="input-wrap">
+            <input id="refInput" type="text" maxlength="${g.refMaxLength || 40}"
+                   placeholder="${g.refPlaceholder}" autocomplete="off" spellcheck="false">
+            <i class="${g.refIcon} in-icon"></i>
+          </div>
+          <span class="help">${g.refHint || ''}</span>
+          <span class="err" id="refErr"><i class="fas fa-circle-exclamation"></i><span>${g.refError}</span></span>
+        </div>
+
+        <div class="field">
+          <label for="cabangInput">Kode Cabang <span class="opt">(opsional)</span></label>
+          <div class="input-wrap">
+            <input id="cabangInput" type="text" inputmode="numeric" maxlength="5"
+                   placeholder="5 digit angka" autocomplete="off">
+            <i class="fas fa-building in-icon"></i>
+          </div>
+          <span class="help">Kosongkan jika tidak diperlukan</span>
+          <span class="err" id="cabangErr"><i class="fas fa-circle-exclamation"></i><span>Kode Cabang harus 5 digit angka</span></span>
+        </div>
+
+        <button type="submit" class="btn-primary-cta" id="submitBtn">
+          <i class="fas fa-qrcode"></i>
+          <span>${g.buttonLabel}</span>
+        </button>
+      </form>
+    </div>
+  `;
+
+  const form = document.getElementById('mainForm');
+  const refInput = document.getElementById('refInput');
+  const cabangInput = document.getElementById('cabangInput');
+
+  refInput.addEventListener('input', () => validateRef(false));
+  cabangInput.addEventListener('input', () => {
+    cabangInput.value = cabangInput.value.replace(/\D/g, '').slice(0, 5);
+    validateCabang(false);
+  });
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!validateRef(true) || !validateCabang(true)) return;
+    submitForm();
+  });
+
+  setStep(2);
+  setTimeout(() => refInput.focus(), 300);
+}
+
+/* ============================================================
+   VALIDATION
+   ============================================================ */
+function validateRef(show) {
+  const g = GENERATORS[state.current];
+  const input = document.getElementById('refInput');
+  const err = document.getElementById('refErr');
+  const v = input.value.trim();
+  const maxLen = g.refMaxLength || 40;
+
+  if (g.refOptional && !v) {
+    input.classList.remove('is-invalid');
+    err.classList.remove('show');
+    return true;
+  }
+
+  if (!v) {
+    input.classList.remove('is-invalid');
+    err.classList.remove('show');
+    return show ? false : true;
+  }
+
+  const validator = g.refValidate || ((x) => x.length > 0 && x.length <= maxLen);
+  const ok = v.length > 0 && v.length <= maxLen && validator(v);
+  input.classList.toggle('is-invalid', !ok);
+  err.classList.toggle('show', !ok);
+  return ok;
+}
+
+function validateCabang() {
+  const input = document.getElementById('cabangInput');
+  const err = document.getElementById('cabangErr');
+  const v = input.value.trim();
+  if (!v) { input.classList.remove('is-invalid'); err.classList.remove('show'); return true; }
+  const ok = /^\d{5}$/.test(v);
+  input.classList.toggle('is-invalid', !ok);
+  err.classList.toggle('show', !ok);
+  return ok;
+}
+
+/* ============================================================
+   SUBMIT — kosong otomatis jadi "null"
+   ============================================================ */
+function submitForm() {
+  const g = GENERATORS[state.current];
+  const refRaw = document.getElementById('refInput').value.trim();
+  const cabangRaw = document.getElementById('cabangInput').value.trim();
+
+  const ref = refRaw === '' ? 'null' : refRaw;
+  const cabang = cabangRaw === '' ? 'null' : cabangRaw;
+
+  const url = g.buildUrl({ ref, cabang });
+  state.urls[state.current] = url;
+
+  renderResult(url);
+  setStep(3);
+  syncToSheets(state.current, ref, cabang, url);
+}
+
+/* ============================================================
+   RENDER RESULT
+   ============================================================ */
+function renderResult(url) {
+  const key = state.current;
+  const g = GENERATORS[key];
+  const mount = document.getElementById('resultMount');
+  mount.innerHTML = `
+    <div class="result-shell" style="--theme-grad:${g.theme.grad};--theme-soft:${g.theme.soft};--theme-shadow:${g.theme.shadow};--theme-color:${g.theme.color}">
+      <div class="result-card">
+        <div class="result-head">
+          <div class="success-badge"><i class="fas fa-circle-check"></i> QR Berhasil Dibuat</div>
+          <h2>${g.brand}</h2>
+          <p>${g.description}</p>
+        </div>
+
+        <div class="qr-stage">
+          <div class="qr-frame-wrap">
+            <span class="qr-corner tl"></span>
+            <span class="qr-corner tr"></span>
+            <span class="qr-corner bl"></span>
+            <span class="qr-corner br"></span>
+            <div class="qr-frame">
+              <div class="qr-frame-inner" id="qrFrameInner">
+                <div class="qr-loading"><div class="ldr"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="qr-hint">
+            <span class="pulse-dot"></span>
+            <span>Siap discan — arahkan kamera ke QR</span>
+          </div>
+        </div>
+
+        <div class="result-body">
+          <div class="link-pill">
+            <i class="fas fa-link"></i>
+            <span class="link-val" id="linkVal" title="${url}">${url}</span>
+            <button class="mini-copy" id="miniCopy" aria-label="Copy link"><i class="fas fa-copy"></i></button>
+          </div>
+
+          <div class="action-grid">
+            <button class="action-tile primary" id="btnShare"><i class="fas fa-share-nodes"></i><span>Bagikan</span></button>
+            <button class="action-tile" id="btnDownload"><i class="fas fa-download"></i><span>Download</span></button>
+            <button class="action-tile" id="btnCopyFull"><i class="fas fa-copy"></i><span>Salin Link</span></button>
+            <button class="action-tile" id="btnNew"><i class="fas fa-plus"></i><span>Buat Baru</span></button>
+          </div>
+
+          <div class="result-foot">
+            QR ini akan mengarahkan ke Play Store / App Store<br>
+            Bank Mandiri terdaftar dan diawasi oleh OJK · © 2026 PT Bank Mandiri (Persero) Tbk.
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('miniCopy').addEventListener('click', () => copyLink(true));
+  document.getElementById('btnCopyFull').addEventListener('click', () => copyLink(false));
+  document.getElementById('btnShare').addEventListener('click', shareQR);
+  document.getElementById('btnDownload').addEventListener('click', downloadQR);
+  document.getElementById('btnNew').addEventListener('click', () => openForm(key));
+
+  renderQRImage(key, url);
+}
+
+/* ============================================================
+   QR IMAGE
+   ============================================================ */
+async function generateQRImage(url, logoDataUrl) {
+  const hasLogo = !!(logoDataUrl && logoDataUrl.trim());
+  const errorLevel = hasLogo ? QR_CONFIG.errorLevelWithLogo : QR_CONFIG.errorLevelNoLogo;
+
+  return new Promise((resolve) => {
+    const hidden = document.createElement('div');
+    hidden.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
+    document.body.appendChild(hidden);
+
+    const qr = new QRCode(hidden, {
+      text: url,
+      width: QR_CONFIG.size,
+      height: QR_CONFIG.size,
+      colorDark: QR_CONFIG.darkColor,
+      colorLight: QR_CONFIG.lightColor,
+      correctLevel: errorLevel
+    });
+
+    setTimeout(async () => {
+      const qrCanvas = hidden.querySelector('canvas');
+      const qrObj = qr._oQRCode || qr._androidQRCode;
+      if (!qrCanvas || !qrObj) { hidden.remove(); resolve(null); return; }
+
+      const count = qrObj.getModuleCount();
+      const moduleSize = QR_CONFIG.size / count;
+
+      const srcCtx = qrCanvas.getContext('2d');
+      const srcData = srcCtx.getImageData(0, 0, QR_CONFIG.size, QR_CONFIG.size).data;
+
+      const matrix = [];
+      for (let r = 0; r < count; r++) {
+        matrix[r] = [];
+        for (let c = 0; c < count; c++) {
+          const px = Math.min(QR_CONFIG.size - 1, Math.floor((c + 0.5) * moduleSize));
+          const py = Math.min(QR_CONFIG.size - 1, Math.floor((r + 0.5) * moduleSize));
+          const idx = (py * QR_CONFIG.size + px) * 4;
+          matrix[r][c] = srcData[idx] < 128;
+        }
+      }
+
+      let logoArea = null;
+      let logoBox = null;
+      if (hasLogo) {
+        const boxSize = Math.round(QR_CONFIG.size * QR_CONFIG.logoMaxRatio);
+        const boxX = Math.round((QR_CONFIG.size - boxSize) / 2);
+        const boxY = Math.round((QR_CONFIG.size - boxSize) / 2);
+        const radius = Math.round(boxSize * QR_CONFIG.logoRadiusRatio);
+
+        logoBox = { x: boxX, y: boxY, w: boxSize, h: boxSize, r: radius };
+
+        const margin = Math.round(moduleSize * QR_CONFIG.logoClearModules);
+        logoArea = {
+          x: boxX - margin,
+          y: boxY - margin,
+          w: boxSize + margin * 2,
+          h: boxSize + margin * 2,
+          r: radius + margin
+        };
+      }
+
+      const styled = document.createElement('canvas');
+      styled.width = QR_CONFIG.size;
+      styled.height = QR_CONFIG.size;
+      const ctx = styled.getContext('2d');
+      ctx.fillStyle = QR_CONFIG.lightColor;
+      ctx.fillRect(0, 0, styled.width, styled.height);
+
+      const isFinderArea = (r, c) =>
+        (r < 7 && c < 7) ||
+        (r < 7 && c >= count - 7) ||
+        (r >= count - 7 && c < 7);
+
+      ctx.fillStyle = QR_CONFIG.darkColor;
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (!matrix[r][c]) continue;
+          if (isFinderArea(r, c)) continue;
+
+          if (logoArea) {
+            const dotCx = c * moduleSize + moduleSize / 2;
+            const dotCy = r * moduleSize + moduleSize / 2;
+            if (pointInRoundedRect(dotCx, dotCy, logoArea.x, logoArea.y, logoArea.w, logoArea.h, logoArea.r)) {
+              continue;
+            }
+          }
+
+          drawRoundedDot(ctx, c * moduleSize, r * moduleSize, moduleSize, QR_CONFIG.dotRadiusRatio);
+        }
+      }
+
+      drawFinderPattern(ctx, 0, 0, moduleSize);
+      drawFinderPattern(ctx, count - 7, 0, moduleSize);
+      drawFinderPattern(ctx, 0, count - 7, moduleSize);
+
+      if (hasLogo) {
+        try {
+          const logo = await loadImage(logoDataUrl);
+          embedLogoInQR(styled, logo, QR_CONFIG, logoBox);
+        } catch (err) {
+          console.warn('[QR] Logo gagal dimuat:', err);
+        }
+      }
+
+      const padding = Math.round(QR_CONFIG.size * QR_CONFIG.paddingRatio);
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width  = QR_CONFIG.size + padding * 2;
+      outCanvas.height = QR_CONFIG.size + padding * 2;
+      const octx = outCanvas.getContext('2d');
+      octx.fillStyle = QR_CONFIG.lightColor;
+      octx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+      octx.drawImage(styled, padding, padding);
+
+      const dataUrl = outCanvas.toDataURL('image/png');
+      hidden.remove();
+      resolve(dataUrl);
+    }, 400);
+  });
+}
+
+function drawRoundedDot(ctx, x, y, size, radiusRatio) {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const half = size / 2;
+  const r = size * radiusRatio;
+
+  if (r >= half - 0.5) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, half, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    const shrink = size * 0.06;
+    const dsize = size - shrink * 2;
+    roundedRectPath(ctx, x + shrink, y + shrink, dsize, dsize, r);
+    ctx.fill();
+  }
+}
+
+function drawFinderPattern(ctx, colStart, rowStart, mSize) {
+  const x = colStart * mSize;
+  const y = rowStart * mSize;
+  const total = mSize * 7;
+
+  const outerR = mSize * QR_CONFIG.finderOuterRadius;
+  const innerR = mSize * QR_CONFIG.finderInnerRadius;
+
+  ctx.save();
+  roundedRectPath(ctx, x + mSize / 2, y + mSize / 2, total - mSize, total - mSize, outerR);
+  ctx.lineWidth = mSize;
+  ctx.strokeStyle = QR_CONFIG.darkColor;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.fillStyle = QR_CONFIG.darkColor;
+  roundedRectPath(ctx, x + mSize * 2, y + mSize * 2, mSize * 3, mSize * 3, innerR);
+  ctx.fill();
+}
+
+/* ============================================================
+   EMBED LOGO — tanpa shadow
+   ============================================================ */
+function embedLogoInQR(canvas, logo, cfg, logoBox) {
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  const boxX = logoBox.x;
+  const boxY = logoBox.y;
+  const boxSize = logoBox.w;
+  const radius = logoBox.r;
+
+  const pad = Math.round(boxSize * cfg.logoPaddingRatio);
+  const innerSize = boxSize - pad * 2;
+
+  // Box putih rounded — TANPA shadow, TANPA border
+  ctx.save();
+  roundedRectPath(ctx, boxX, boxY, boxSize, boxSize, radius);
+  ctx.fillStyle = cfg.logoBg;
+  ctx.fill();
+  ctx.restore();
+
+  const ar = logo.width / logo.height;
+  let lw = innerSize, lh = innerSize;
+  if (ar > 1) lh = innerSize / ar;
+  else        lw = innerSize * ar;
+
+  const lx = Math.round(cx - lw / 2);
+  const ly = Math.round(cy - lh / 2);
+  const innerRadius = Math.max(2, Math.round(radius * 0.60));
+
+  ctx.save();
+  roundedRectPath(ctx, boxX + pad, boxY + pad, innerSize, innerSize, innerRadius);
+  ctx.clip();
+  ctx.drawImage(logo, lx, ly, lw, lh);
+  ctx.restore();
+}
+
+function roundedRectPath(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function pointInRoundedRect(px, py, x, y, w, h, r) {
+  if (px < x || px > x + w || py < y || py > y + h) return false;
+  r = Math.min(r, w / 2, h / 2);
+
+  const inTL = px < x + r && py < y + r;
+  const inTR = px > x + w - r && py < y + r;
+  const inBL = px < x + r && py > y + h - r;
+  const inBR = px > x + w - r && py > y + h - r;
+
+  if (inTL) return (px - (x + r)) ** 2 + (py - (y + r)) ** 2 <= r * r;
+  if (inTR) return (px - (x + w - r)) ** 2 + (py - (y + r)) ** 2 <= r * r;
+  if (inBL) return (px - (x + r)) ** 2 + (py - (y + h - r)) ** 2 <= r * r;
+  if (inBR) return (px - (x + w - r)) ** 2 + (py - (y + h - r)) ** 2 <= r * r;
+
+  return true;
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Image load failed'));
+    img.src = src;
+  });
+}
+
+async function renderQRImage(key, url) {
+  const inner = document.getElementById('qrFrameInner');
+  if (!inner) return;
+
+  inner.innerHTML = '<div class="qr-loading"><div class="ldr"></div></div>';
+
+  const dataUrl = await generateQRImage(url, LOGO_BASE64);
+  if (!dataUrl) {
+    inner.innerHTML = '<div class="qr-loading"><div class="ldr"></div></div>';
+    return;
+  }
+
+  state.images[key] = dataUrl;
+  inner.innerHTML = `<img src="${dataUrl}" alt="QR Code untuk ${GENERATORS[key].tabLabel}">`;
+}
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+async function copyLink(isMini) {
+  const key = state.current;
+  if (!state.urls[key]) return;
+  const res = await clipboard.copyText(state.urls[key]);
+  if (res.success) {
+    showToast('Tautan berhasil disalin', 'success');
+    if (isMini) {
+      const btn = document.getElementById('miniCopy');
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="fas fa-check"></i>';
+      setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1800);
+    }
+  } else {
+    openCopyModal(state.urls[key]);
+  }
+}
+
+async function shareQR() {
+  const key = state.current;
+  const g = GENERATORS[key];
+  const btn = document.getElementById('btnShare');
+  btn.classList.add('loading');
+  try {
+    const data = {
+      title: `QR ${g.tabLabel} · Livin' by Mandiri`,
+      text: "Cobain pakai Livin' by Mandiri, yuk! Ajak temen lain, nanti kamu juga bisa dapat banyak reward.",
+      url: state.urls[key]
+    };
+    if (state.images[key]) await shareMgr.shareWithImage(data, state.images[key]);
+    else await shareMgr.share(data);
+  } catch (err) {
+    console.error(err);
+    shareMgr.shareViaWhatsApp({
+      title: `QR ${g.tabLabel}`,
+      text: "Cobain pakai Livin' by Mandiri, yuk!",
+      url: state.urls[key]
+    });
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+function downloadQR() {
+  const key = state.current;
+  const dataUrl = state.images[key];
+  if (!dataUrl) { showToast('QR belum siap', 'error'); return; }
+  const ref = (document.getElementById('refInput')?.value || '').trim() || 'null';
+  const cabang = (document.getElementById('cabangInput')?.value || '').trim() || 'null';
+  const name = `QR_${key.toUpperCase()}_${ref}_${cabang}.png`;
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = name;
+  a.click();
+  showToast('QR berhasil di-download', 'success');
+}
+
+/* ============================================================
+   SYNC TO GOOGLE SHEETS
+   ============================================================ */
+async function syncToSheets(type, ref, cabang, url) {
+  const bar = document.getElementById('syncBar');
+  const txt = document.getElementById('syncText');
+  const spin = bar.querySelector('.sync-spin');
+  bar.className = 'sync-bar show';
+  spin.className = 'sync-spin';
+  spin.innerHTML = '';
+  txt.textContent = 'Menyinkronkan data...';
+
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST', mode: 'no-cors',
+      body: JSON.stringify({ type, nip: ref, kodeCabang: cabang, timestamp: new Date().toISOString(), url }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    bar.className = 'sync-bar show ok';
+    spin.className = 'sync-spin';
+    spin.innerHTML = '<i class="fas fa-check-circle"></i>';
+    txt.textContent = 'Data tersinkron';
+    setTimeout(() => bar.classList.remove('show'), 2600);
+  } catch (err) {
+    console.error(err);
+    bar.className = 'sync-bar show err';
+    spin.className = 'sync-spin';
+    spin.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+    txt.textContent = 'Gagal sinkron';
+    setTimeout(() => bar.classList.remove('show'), 4000);
+  }
+}
+
+/* ============================================================
+   TOASTS & MODAL
+   ============================================================ */
+function showToast(msg, type = 'info') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+  el.innerHTML = `<i class="fas ${icon}"></i><span>${msg}</span>`;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 2800);
+}
+
+function openCopyModal(text) {
+  document.getElementById('fallbackInput').value = text;
+  document.getElementById('copyModal').classList.add('show');
+}
+function closeCopyModal() {
+  document.getElementById('copyModal').classList.remove('show');
+}
+function fallbackCopyManual() {
+  const input = document.getElementById('fallbackInput');
+  input.select();
+  try {
+    document.execCommand('copy');
+    showToast('Tautan berhasil disalin', 'success');
+    closeCopyModal();
+  } catch { showToast('Gagal menyalin', 'error'); }
+}
+
+/* ============================================================
+   CLIPBOARD & SHARE
+   ============================================================ */
+const clipboard = {
+  async copyText(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return { success: ok };
+    } catch (e) { return { success: false, error: e.message }; }
+  }
+};
+
+const shareMgr = {
+  embedded: (() => { try { return window.self !== window.top; } catch { return true; } })(),
+  supported: !!navigator.share,
+  supportedFiles: !!navigator.share && !!navigator.canShare,
+
+  async share(data) {
+    if (this.embedded || !this.supported) { this.shareViaWhatsApp(data); return { success: true }; }
+    try { await navigator.share(data); return { success: true }; }
+    catch (err) {
+      if (err.name === 'NotAllowedError') { this.shareViaWhatsApp(data); return { success: true }; }
+      return { success: false, error: err.message };
+    }
+  },
+
+  async shareWithImage(data, imageDataUrl) {
+    if (this.embedded || !imageDataUrl) return this.share(data);
+    try {
+      const blob = dataURLToBlob(imageDataUrl);
+      const file = new File([blob], `QR_Livin_${Date.now()}.png`, { type: 'image/png' });
+      const shareData = { ...data, files: [file] };
+      if (this.supportedFiles && navigator.canShare({ files: shareData.files })) {
+        await navigator.share(shareData);
+        return { success: true };
+      }
+      const { files, ...rest } = shareData;
+      return this.share(rest);
+    } catch (e) { return this.share(data); }
+  },
+
+  shareViaWhatsApp(data) {
+    const url = data.url || location.href;
+    const text = `${data.text || ''}: ${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  }
+};
+
+function dataURLToBlob(dataURL) {
+  const [header, b64] = dataURL.split(';base64,');
+  const type = header.split(':')[1];
+  const raw = atob(b64);
+  const u8 = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i);
+  return new Blob([u8], { type });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init() {
+  renderPicker();
+  document.getElementById('backToPicker').addEventListener('click', () => setStep(1));
+  document.getElementById('backToForm').addEventListener('click', () => {
+    if (state.current) openForm(state.current); else setStep(1);
+  });
+  document.getElementById('copyModal').addEventListener('click', (e) => {
+    if (e.target.id === 'copyModal') closeCopyModal();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+
+</body></html>
